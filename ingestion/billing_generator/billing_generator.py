@@ -109,7 +109,8 @@ class BillingGenerator:
         plan_weights = [0.35, 0.25, 0.15, 0.15, 0.05, 0.03, 0.01]
 
         for i in range(self.num_customers):
-            plan = self.rng.choice(self.plans, p=plan_weights)
+            plan_idx = self.rng.choice(len(self.plans), p=plan_weights)
+            plan = self.plans[plan_idx]
             customer_id = f"CUST_{i:06d}"
             hashed_id = self._hash_pii(customer_id)
 

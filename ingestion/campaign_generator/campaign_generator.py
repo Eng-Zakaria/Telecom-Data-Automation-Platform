@@ -156,9 +156,9 @@ class CampaignGenerator:
             expected_reach = int(self.rng.uniform(1000, 50000))
 
             start_date = datetime(2024, 1, 1) + timedelta(
-                days=self.rng.integers(0, 365)
+                days=int(self.rng.integers(0, 365))
             )
-            duration = self.rng.choice([7, 14, 30, 60])
+            duration = int(self.rng.choice([7, 14, 30, 60]))
             end_date = start_date + timedelta(days=duration)
 
             campaigns.append(Campaign(

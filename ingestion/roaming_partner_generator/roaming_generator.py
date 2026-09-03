@@ -184,19 +184,21 @@ class RoamingGenerator:
             # Duration based on type
             if session_type == 'voice':
                 duration = self.rng.integers(30, 1800)  # 30s to 30min
+                duration = int(duration)
                 voice_minutes = duration / 60
                 sms_count = 0
                 data_mb = 0
             elif session_type == 'sms':
                 duration = 0
                 voice_minutes = 0
-                sms_count = self.rng.integers(1, 10)
+                sms_count = int(self.rng.integers(1, 10))
                 data_mb = 0
             else:  # data
                 duration = self.rng.integers(60, 3600)
+                duration = int(duration)
                 voice_minutes = 0
                 sms_count = 0
-                data_mb = self.rng.uniform(1, 500)
+                data_mb = float(self.rng.uniform(1, 500))
 
             end_time = start_time + timedelta(seconds=duration) if duration > 0 else None
 
