@@ -176,9 +176,9 @@ class RoamingGenerator:
             # Session characteristics
             session_type = self.rng.choice(['voice', 'sms', 'data'], p=[0.5, 0.25, 0.25])
             start_time = datetime(2024, 1, 1) + timedelta(
-                days=self.rng.integers(0, self.date_range_days),
-                hours=self.rng.integers(0, 24),
-                minutes=self.rng.integers(0, 60)
+                days=int(self.rng.integers(0, self.date_range_days)),
+                hours=int(self.rng.integers(0, 24)),
+                minutes=int(self.rng.integers(0, 60))
             )
 
             # Duration based on type

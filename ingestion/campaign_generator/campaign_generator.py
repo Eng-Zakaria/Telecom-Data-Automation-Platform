@@ -212,7 +212,7 @@ class CampaignGenerator:
                 hashed_id = self._hash_pii(customer_id)
 
                 # Send date (during campaign period)
-                days_offset = self.rng.integers(0, (campaign.end_date - campaign.start_date).days)
+                days_offset = int(self.rng.integers(0, (campaign.end_date - campaign.start_date).days))
                 sent_date = campaign.start_date + timedelta(days=days_offset)
 
                 # Did they open?
@@ -235,7 +235,7 @@ class CampaignGenerator:
 
                     if converted:
                         conversion_type = campaign.objective
-                        days_to_convert = self.rng.integers(1, 14)
+                        days_to_convert = int(self.rng.integers(1, 14))
                         conversion_date = sent_date + timedelta(days=days_to_convert)
 
                         # Revenue based on objective

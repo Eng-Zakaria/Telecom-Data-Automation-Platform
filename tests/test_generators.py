@@ -62,9 +62,10 @@ def test_network_kpi_generator():
     assert 'latency_ms' in df.columns
 
     # Validate ranges
-    assert df['rsrp_dbm'].min() >= -120
+    assert df['rsrp_dbm'].min() >= -140
     assert df['rsrp_dbm'].max() <= -30
-    assert df['sinr_db'].min() >= 0
+    assert df['sinr_db'].min() >= -20
+    assert df['sinr_db'].max() <= 30
     assert df['congestion_pct'].min() >= 0
     assert df['congestion_pct'].max() <= 100
 

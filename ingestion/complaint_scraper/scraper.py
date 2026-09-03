@@ -130,6 +130,10 @@ class ComplaintScraper:
                     "Package not effective",
                     "Issues activating services",
                     "Difficulty changing package"
+                ],
+                'general': [
+                    "General complaint about service",
+                    "Other issue not categorized"
                 ]
             }
         }
@@ -148,10 +152,11 @@ class ComplaintScraper:
         category = self.rng.choice(list(self.category_weights.keys()), p=list(self.category_weights.values()))
 
         templates = self.templates.get(language, self.templates['en'])
-        title = self.rng.choice(templates.get(category, templates['general']))
-        description = f"{title} - {self.rng.choice(templates.get(category, templates['general']))}"
+        category_templates = templates.get(category, templates.get('general', []))
+        title = self.rng.choice(category_templates) if category_templates else "General complaint"
+        description = f"{title} - Additional details"
 
-        posted_date = datetime(2024, 1, 1) + timedelta(days=self.rng.integers(0, 365))
+        posted_date = datetime(2024, 1, 1) + timedelta(days=int(self.rng.integers(0, 365)))
         resolved = self.rng.random() < 0.65
         resolution_time = self.rng.integers(1, 14) if resolved else None
 

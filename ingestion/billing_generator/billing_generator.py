@@ -105,11 +105,12 @@ class BillingGenerator:
         """Generate customer billing records"""
         customers = []
 
-        # Plan selection weights
-        plan_weights = [0.35, 0.25, 0.15, 0.15, 0.05, 0.03, 0.01]
+        # Plan selection weights (should match number of plans)
+        num_plans = len(self.plans)
+        plan_weights = [1.0 / num_plans] * num_plans  # Uniform distribution for testing
 
         for i in range(self.num_customers):
-            plan_idx = self.rng.choice(len(self.plans), p=plan_weights)
+            plan_idx = self.rng.choice(num_plans, p=plan_weights)
             plan = self.plans[plan_idx]
             customer_id = f"CUST_{i:06d}"
             hashed_id = self._hash_pii(customer_id)
@@ -121,7 +122,7 @@ class BillingGenerator:
             # Contract end (if postpaid/enterprise)
             contract_end = None
             if plan.type in ['postpaid', 'enterprise']:
-                contract_months = self.rng.choice([12, 24, 36])
+                contract_months = int(self.rng.choice([12, 24, 36]))
                 contract_end = contract_start + timedelta(days=contract_months * 30)
 
             # Usage charges (based on plan and actual usage)
@@ -153,9 +154,9 @@ class BillingGenerator:
             # Last payment date
             last_payment = None
             if payment_status == 'paid':
-                last_payment = datetime.now() - timedelta(days=self.rng.integers(0, 5))
+                last_payment = datetime.now() - timedelta(days=int(self.rng.integers(0, 5)))
             elif payment_status == 'overdue':
-                last_payment = datetime.now() - timedelta(days=self.rng.integers(30, 90))
+                last_payment = datetime.now() - timedelta(days=int(self.rng.integers(30, 90)))
 
             # Lifetime value
             lifetime_value = round(total_charge * tenure_days / 30, 2)
