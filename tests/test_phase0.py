@@ -55,7 +55,7 @@ def test_readme_exists():
     """Verify README exists and has content"""
     readme = Path(__file__).parent.parent / 'README.md'
     assert readme.exists()
-    content = readme.read_text()
+    content = readme.read_text(encoding='utf-8')
     assert len(content) > 1000, "README should have substantial content"
 
 
