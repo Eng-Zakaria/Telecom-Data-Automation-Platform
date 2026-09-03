@@ -1,0 +1,111 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install black isort flake8
+          cd ingestion && pip install -r requirements.txt
+
+      - name: Run linters
+        run: |
+          black --check ingestion/ ml/ quality/
+          isort --check-only ingestion/ ml/ quality/
+          flake8 ingestion/ ml/ quality/
+
+  terraform-validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive infra/
+
+      - name: Terraform validate
+        run: |
+          cd infra
+          terraform init -backend=false
+          terraform validate
+
+  dbt-test:
+    name: Run dbt Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt
+        run: |
+          pip install dbt-core dbt-postgres
+
+      - name: Run dbt tests
+        run: |
+          cd transform/dbt
+          dbt compile
+          dbt test
+
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov
+          cd ingestion && pip install -r requirements.txt
+          cd ml && pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=ingestion --cov=ml --cov=quality
+
+  data-quality:
+    name: Run Great Expectations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Great Expectations
+        run: pip install great-expectations
+
+      - name: Run expectations
+        run: |
+          cd quality
+          python run_expectations.py

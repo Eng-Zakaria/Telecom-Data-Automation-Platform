@@ -1,0 +1,131 @@
+version: '3.8'
+
+# Telecom Platform Local Development Stack
+# Provides parity with Azure services for local development
+
+services:
+  # Azure Blob Storage Emulator
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: telecom-azurite
+    ports:
+      - "10000:10000"  # Blob
+      - "10001:10001"  # Queue
+      - "10002:10002"  # Table
+    volumes:
+      - azurite-data:/data
+    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000 azurite-queue --queueHost 0.0.0.0 --queuePort 10001 azurite-table --tableHost 0.0.0.0 --tablePort 10002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telecom-dev
+
+  # S3-Compatible Object Storage (MinIO)
+  minio:
+    image: minio/minio:latest
+    container_name: telecom-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telecom-dev
+
+  # Kafka-Compatible Streaming Platform (Redpanda)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: telecom-redpanda
+    ports:
+      - "9092:9092"   # Kafka API
+      - "9644:9644"   # Admin API
+      - "2479:2479"   # RPC
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    command: >
+      redpanda start
+      --smp 1
+      --memory 1G
+      --reserve-memory 0M
+      --overprovisioned
+      --node-id 0
+      --kafka-addr PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9092
+      --advertise-kafka-addr PLAINTEXT://redpanda:9092,EXTERNAL://localhost:9092
+      --rpc-addr redpanda:2479
+      --advertise-rpc-addr redpanda:2479
+      --set redpanda.default_topic_partitions=4
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telecom-dev
+
+  # PostgreSQL - Source System Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: telecom-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-telecom}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-telecom}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - telecom-dev
+
+  # Data Generation Service
+  generator:
+    build:
+      context: .
+      dockerfile: ingestion/cdr_generator/Dockerfile
+    container_name: telecom-generator
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      POSTGRES_CONNECTION_STRING: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-telecom}
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      BLOB_STORAGE_ENDPOINT: http://azurite:10000
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    networks:
+      - telecom-dev
+
+networks:
+  telecom-dev:
+    driver: bridge
+
+volumes:
+  azurite-data:
+    name: telecom-azurite-data
+  minio-data:
+    name: telecom-minio-data
+  redpanda-data:
+    name: telecom-redpanda-data
+  postgres-data:
+    name: telecom-postgres-data

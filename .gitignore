@@ -1,0 +1,60 @@
+# Telecom Platform - Git Ignore
+# Credentials and secrets
+.env
+*.key
+*.pem
+*.p12
+credentials.json
+service-account.json
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# Data files (keep synthetic data generators, ignore generated data)
+data/generated/
+!**/.gitkeep
+
+# Build artifacts
+dist/
+build/
+.target/

@@ -1,0 +1,80 @@
+name: Ephemeral Environment
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  provision:
+    name: Provision Ephemeral Environment
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    environment: ephemeral
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Provision Environment
+        id: provision
+        run: |
+          cd infra/environments/ephemeral
+          terraform init
+          terraform apply -auto-approve \
+            -var="branch_name=${{ github.head_ref }}" \
+            -var="auto_delete_after=24h"
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Ephemeral environment provisioned!\n\nResource Group: rg-telecom-ephemeral-${{ github.head_ref }}\n\nAuto-deletes in 24 hours.`
+            })
+
+  destroy:
+    name: Destroy Ephemeral Environment
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed' || github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Destroy Environment
+        run: |
+          cd infra/environments/ephemeral
+          terraform init
+          terraform destroy -auto-approve \
+            -var="branch_name=${{ github.event.pull_request.head.ref }}"
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🧹 Ephemeral environment cleaned up.`
+            })
