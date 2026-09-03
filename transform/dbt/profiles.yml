@@ -1,0 +1,32 @@
+telecom_platform:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: postgres
+      password: postgres
+      dbname: telecom
+      schema: gold
+      threads: 4
+
+    staging:
+      type: postgres
+      host: {{ env_var('DB_HOST') }}
+      port: 5432
+      user: {{ env_var('DB_USER') }}
+      password: {{ env_var('DB_PASSWORD') }}
+      dbname: telecom_staging
+      schema: gold
+      threads: 4
+
+    prod:
+      type: postgres
+      host: {{ env_var('DB_HOST') }}
+      port: 5432
+      user: {{ env_var('DB_USER') }}
+      password: {{ env_var('DB_PASSWORD') }}
+      dbname: telecom_prod
+      schema: gold
+      threads: 8

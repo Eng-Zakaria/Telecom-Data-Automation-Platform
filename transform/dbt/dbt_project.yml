@@ -1,0 +1,60 @@
+name: 'telecom_platform'
+version: '1.0.0'
+config-version: 2
+
+profile: 'telecom_platform'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  telecom_platform:
+    +materialized: view
+    core:
+      +materialized: table
+      +tags: ["core"]
+    marts:
+      +materialized: table
+      +tags: ["marts"]
+      retention:
+        +materialized: table
+      revenue_assurance:
+        +materialized: table
+      network_ops:
+        +materialized: table
+      marketing:
+        +materialized: table
+      customer_care:
+        +materialized: table
+      finance:
+        +materialized: table
+      roaming:
+        +materialized: table
+      product:
+        +materialized: table
+
+seeds:
+  telecom_platform:
+    +schema: seeds
+    +column_types:
+      customer_id: varchar
+      tower_id: varchar
+      plan_id: varchar
+
+tests:
+  telecom_platform:
+    +severity: error
+
+vars:
+  billing_month: '2024-01'
+  default_schema: 'gold'
+  encryption_algorithm: 'sha256'

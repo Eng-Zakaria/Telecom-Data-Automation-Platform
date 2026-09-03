@@ -322,6 +322,9 @@ class CDRGenerator:
         # Convert to DataFrame
         df = pd.DataFrame([r.__dict__ for r in records])
 
+        # Ensure correct dtypes
+        df['roaming_flag'] = df['roaming_flag'].astype(bool)
+
         # Sort by time
         df = df.sort_values('start_time').reset_index(drop=True)
 
