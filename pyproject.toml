@@ -1,0 +1,42 @@
+[project]
+name = "telecom-platform"
+version = "0.4.0"
+description = "Telecom lakehouse: synthetic sources -> bronze/silver/gold -> 8 domain marts, Azure-portable."
+requires-python = ">=3.11,<3.14"  # pyspark 3.5 has no 3.14 wheels
+dependencies = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+  "pyarrow>=17",
+  "deltalake>=0.22",          # Delta Lake without a JVM: local stand-in for Fabric/Databricks Delta
+  "duckdb>=1.1",
+  "cloudkit",                 # azure-local-lab adapters: emulator <-> Azure by CLOUDKIT_MODE
+  "azure-eventhub>=5.13",
+  "openlineage-python>=1.24",
+]
+
+[project.optional-dependencies]
+spark = ["pyspark>=3.5,<4", "delta-spark>=3.2,<4"]
+dbt = ["dbt-core>=1.8", "dbt-duckdb>=1.8"]
+quality = ["great-expectations>=0.18,<1.0"]
+kafka = ["kafka-python>=2.0.2"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-cov>=5", "ruff>=0.8"]
+
+[tool.uv.sources]
+cloudkit = { path = "../azure-local-lab", editable = true }
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs the azure-local-lab stack running"]
+addopts = "-m 'not integration'"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["transform/dbt/target", "transform/dbt/dbt_packages"]

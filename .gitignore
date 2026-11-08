@@ -58,3 +58,6 @@ data/generated/
 dist/
 build/
 .target/
+telecom-platform-claude-code-prompt.md
+# Run outputs (lineage events, run summaries)
+artifacts/

@@ -1,0 +1,31 @@
+# Policy-as-code for infra/. Every skip below is a deliberate, documented trade-off;
+# anything not listed here fails the build.
+framework: terraform
+quiet: true
+compact: true
+download-external-modules: false
+skip-check:
+  # Private endpoints / network isolation: deliberately out of scope for a portfolio
+  # deployment that lives for hours. Production hardening = Private Link + Deny ACLs
+  # (modules already expose network_default_action / allowed_ip_ranges).
+  - CKV_AZURE_59   # storage: public network access
+  - CKV_AZURE_109  # key vault: network ACL default deny
+  - CKV_AZURE_189  # key vault: public network access
+  - CKV2_AZURE_33  # storage: private endpoint
+  - CKV2_AZURE_32  # key vault: private endpoint
+  - CKV_AZURE_104  # data factory: public network access
+  - CKV_AZURE_158  # databricks: public network access
+  # Customer-managed keys: Microsoft-managed encryption at rest is on by default;
+  # CMK adds a Key Vault key lifecycle that this project does not need.
+  - CKV2_AZURE_1   # storage: CMK
+  - CKV_AZURE_206  # storage: replication (prod uses ZRS via variable)
+  - CKV2_AZURE_48  # databricks: CMK for root DBFS (no data is kept in DBFS; lake is ADLS)
+  # Key Vault secrets/keys expiry: the vault holds no secrets created by Terraform.
+  - CKV_AZURE_41
+  - CKV_AZURE_40
+  # Storage queue/blob logging for an account that only stores Delta tables:
+  # diagnostic settings go to Log Analytics instead (observability module).
+  - CKV_AZURE_33
+  - CKV2_AZURE_21
+  # Event Hubs: zone redundancy is automatic in supported regions on Standard.
+  - CKV_AZURE_228

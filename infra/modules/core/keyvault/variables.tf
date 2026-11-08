@@ -1,6 +1,11 @@
 variable "name" {
   type        = string
-  description = "Key Vault name"
+  description = "Key Vault name (3-24 chars, globally unique)"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$", var.name))
+    error_message = "Key Vault names are 3-24 characters: letters, digits and dashes, starting with a letter."
+  }
 }
 
 variable "resource_group_name" {
@@ -15,17 +20,34 @@ variable "location" {
 
 variable "environment" {
   type        = string
-  description = "Environment name (dev, staging, prod)"
+  description = "Environment name (prod enables purge protection and 90-day soft delete)"
 }
 
 variable "use_local_dev" {
   type        = bool
   default     = false
-  description = "When true, uses local development resources instead of Azure"
+  description = "When true, nothing is created (secrets come from environment variables)"
+}
+
+variable "network_default_action" {
+  type        = string
+  default     = "Allow"
+  description = "Allow for dev/CI runners; Deny + private endpoint in a hardened prod"
+
+  validation {
+    condition     = contains(["Allow", "Deny"], var.network_default_action)
+    error_message = "network_default_action must be Allow or Deny."
+  }
+}
+
+variable "allowed_ip_ranges" {
+  type        = list(string)
+  default     = []
+  description = "CIDRs allowed when network_default_action is Deny"
 }
 
 variable "tags" {
   type        = map(string)
-  description = "Tags to apply to all resources"
   default     = {}
+  description = "Tags to apply"
 }

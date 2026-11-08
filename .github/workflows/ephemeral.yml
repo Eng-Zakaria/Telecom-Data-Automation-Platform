@@ -1,80 +1,92 @@
-name: Ephemeral Environment
+name: ephemeral
+
+# One throwaway environment per pull request, labelled `preview` (opt-in: it costs money).
+# Destroyed when the PR closes, and a nightly janitor deletes anything older than its TTL
+# in case a destroy ever fails.
 
 on:
   pull_request:
-    branches: [main]
+    types: [labeled, synchronize, reopened, closed] # closed is NOT a default type
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: ephemeral-${{ github.event.pull_request.number || 'janitor' }}
+  cancel-in-progress: false # never interrupt an apply/destroy halfway
+
+env:
+  ARM_USE_OIDC: "true"
+  ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  TF_IN_AUTOMATION: "true"
 
 jobs:
   provision:
-    name: Provision Ephemeral Environment
+    if: >-
+      vars.AZURE_CLIENT_ID != '' && github.event_name == 'pull_request' &&
+      github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'preview')
     runs-on: ubuntu-latest
-    if: github.event.action == 'opened' || github.event.action == 'synchronize'
     environment: ephemeral
+    defaults: { run: { working-directory: infra/environments/ephemeral } }
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.5.0'
-
-      - name: Configure Azure Credentials
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Provision Environment
-        id: provision
-        run: |
-          cd infra/environments/ephemeral
-          terraform init
-          terraform apply -auto-approve \
-            -var="branch_name=${{ github.head_ref }}" \
-            -var="auto_delete_after=24h"
-
-      - name: Comment on PR
-        uses: actions/github-script@v7
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8", terraform_wrapper: false }
+      - run: >
+          terraform init -input=false
+          -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
+          -backend-config="storage_account_name=${{ vars.TFSTATE_ACCOUNT }}"
+          -backend-config="container_name=tfstate"
+          -backend-config="key=ephemeral/pr${{ github.event.pull_request.number }}.tfstate"
+      - run: terraform apply -input=false -auto-approve -var="pr_number=${{ github.event.pull_request.number }}"
+      - id: out
+        run: echo "rg=$(terraform output -raw resource_group_name)" >> "$GITHUB_OUTPUT"
+      - uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 Ephemeral environment provisioned!\n\nResource Group: rg-telecom-ephemeral-${{ github.head_ref }}\n\nAuto-deletes in 24 hours.`
-            })
+            github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number,
+              body: `Preview environment ready: \`${{ steps.out.outputs.rg }}\` (destroyed on close, TTL 24h).` });
 
   destroy:
-    name: Destroy Ephemeral Environment
+    if: vars.AZURE_CLIENT_ID != '' && github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    if: github.event.action == 'closed' || github.event.pull_request.merged == true
+    environment: ephemeral
+    defaults: { run: { working-directory: infra/environments/ephemeral } }
     steps:
       - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - run: >
+          terraform init -input=false
+          -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
+          -backend-config="storage_account_name=${{ vars.TFSTATE_ACCOUNT }}"
+          -backend-config="container_name=tfstate"
+          -backend-config="key=ephemeral/pr${{ github.event.pull_request.number }}.tfstate"
+      - run: terraform destroy -input=false -auto-approve -var="pr_number=${{ github.event.pull_request.number }}"
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+  janitor:
+    if: vars.AZURE_CLIENT_ID != '' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: azure/login@v2
         with:
-          terraform_version: '1.5.0'
-
-      - name: Configure Azure Credentials
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Destroy Environment
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: delete expired preview resource groups
         run: |
-          cd infra/environments/ephemeral
-          terraform init
-          terraform destroy -auto-approve \
-            -var="branch_name=${{ github.event.pull_request.head.ref }}"
-
-      - name: Comment on PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🧹 Ephemeral environment cleaned up.`
-            })
+          cutoff=$(date -u -d '24 hours ago' +%s)
+          az group list --tag environment=ephemeral --query "[].{name:name, created:createdTime}" -o tsv \
+          | while read -r name created; do
+              created_s=$(date -u -d "${created:-now}" +%s 2>/dev/null || date +%s)
+              if [ "$created_s" -lt "$cutoff" ]; then
+                echo "deleting expired $name (created $created)"; az group delete -n "$name" --yes --no-wait
+              fi
+            done

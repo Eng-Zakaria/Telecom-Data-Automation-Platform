@@ -1,131 +1,54 @@
-version: '3.8'
+# Telecom platform - local services that are specific to this project.
+#
+# Azure stand-ins (Azurite, Event Hubs emulator, Grafana LGTM) come from the shared
+# azure-local-lab stack so every project uses the same emulators:
+#
+#   (cd ../azure-local-lab && docker compose --profile streaming up -d)
+#   docker compose up -d          # Marquez: OpenLineage backend + lineage graph UI
+#
+# Then run with lineage going to Marquez instead of the JSONL file:
+#   OPENLINEAGE_URL=http://localhost:5000 uv run python -m lakehouse --stream
+#   open http://localhost:3002  (namespace: telecom-platform)
+#
+# Marquez plays the role Microsoft Purview plays in Azure: both consume OpenLineage.
 
-# Telecom Platform Local Development Stack
-# Provides parity with Azure services for local development
+name: telecom-platform
 
 services:
-  # Azure Blob Storage Emulator
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:latest
-    container_name: telecom-azurite
-    ports:
-      - "10000:10000"  # Blob
-      - "10001:10001"  # Queue
-      - "10002:10002"  # Table
-    volumes:
-      - azurite-data:/data
-    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000 azurite-queue --queueHost 0.0.0.0 --queuePort 10001 azurite-table --tableHost 0.0.0.0 --tablePort 10002
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:10000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - telecom-dev
-
-  # S3-Compatible Object Storage (MinIO)
-  minio:
-    image: minio/minio:latest
-    container_name: telecom-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
-    volumes:
-      - minio-data:/data
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - telecom-dev
-
-  # Kafka-Compatible Streaming Platform (Redpanda)
-  redpanda:
-    image: docker.redpanda.com/redpandadata/redpanda:latest
-    container_name: telecom-redpanda
-    ports:
-      - "9092:9092"   # Kafka API
-      - "9644:9644"   # Admin API
-      - "2479:2479"   # RPC
-    volumes:
-      - redpanda-data:/var/lib/redpanda/data
-    command: >
-      redpanda start
-      --smp 1
-      --memory 1G
-      --reserve-memory 0M
-      --overprovisioned
-      --node-id 0
-      --kafka-addr PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9092
-      --advertise-kafka-addr PLAINTEXT://redpanda:9092,EXTERNAL://localhost:9092
-      --rpc-addr redpanda:2479
-      --advertise-rpc-addr redpanda:2479
-      --set redpanda.default_topic_partitions=4
-    healthcheck:
-      test: ["CMD", "rpk", "cluster", "info"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - telecom-dev
-
-  # PostgreSQL - Source System Database
-  postgres:
+  marquez-db:
     image: postgres:16-alpine
-    container_name: telecom-postgres
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-telecom}
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez # the marquez image hard-codes this default; local-only
+      POSTGRES_DB: marquez
+    volumes: ["marquez-db:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-telecom}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - telecom-dev
+      test: ["CMD-SHELL", "pg_isready -U marquez -d marquez"]
+      interval: 5s
+      retries: 20
 
-  # Data Generation Service
-  generator:
-    build:
-      context: .
-      dockerfile: ingestion/cdr_generator/Dockerfile
-    container_name: telecom-generator
+  marquez:
+    image: marquezproject/marquez:0.50.0
     depends_on:
-      postgres:
-        condition: service_healthy
-      redpanda:
-        condition: service_healthy
+      marquez-db: { condition: service_healthy }
     environment:
-      POSTGRES_CONNECTION_STRING: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-telecom}
-      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
-      BLOB_STORAGE_ENDPOINT: http://azurite:10000
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
-    networks:
-      - telecom-dev
+      MARQUEZ_PORT: 5000
+      MARQUEZ_ADMIN_PORT: 5001
+      POSTGRES_HOST: marquez-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: marquez
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez # the marquez image hard-codes this default; local-only
+    ports: ["${MARQUEZ_API_PORT:-5000}:5000", "${MARQUEZ_ADMIN_PORT:-5001}:5001"]
 
-networks:
-  telecom-dev:
-    driver: bridge
+  marquez-web:
+    image: marquezproject/marquez-web:0.50.0
+    depends_on: [marquez]
+    environment:
+      MARQUEZ_HOST: marquez
+      MARQUEZ_PORT: 5000
+      WEB_PORT: 3000
+    ports: ["${MARQUEZ_WEB_PORT:-3002}:3000"]
 
 volumes:
-  azurite-data:
-    name: telecom-azurite-data
-  minio-data:
-    name: telecom-minio-data
-  redpanda-data:
-    name: telecom-redpanda-data
-  postgres-data:
-    name: telecom-postgres-data
+  marquez-db:

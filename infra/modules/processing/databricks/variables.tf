@@ -21,29 +21,16 @@ variable "environment" {
 variable "use_local_dev" {
   type        = bool
   default     = false
-  description = "When true, skips Databricks provisioning"
+  description = "When true, nothing is created (use local PySpark/Delta)"
 }
 
-variable "keyvault_id" {
+variable "storage_account_id" {
   type        = string
-  description = "Key Vault ID for secret access"
-  default     = ""
-}
-
-variable "vnet_id" {
-  type        = string
-  description = "Virtual network ID for private networking"
-  default     = ""
-}
-
-variable "processing_subnet_id" {
-  type        = string
-  description = "Subnet ID for processing resources"
-  default     = ""
+  description = "Lake storage account ID that Unity Catalog reads and writes"
 }
 
 variable "tags" {
   type        = map(string)
-  description = "Tags to apply"
   default     = {}
+  description = "Tags to apply"
 }

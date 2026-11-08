@@ -61,9 +61,12 @@ class NetworkKPIGenerator:
         output_dir: str = "data/network_kpi",
         date_range_days: int = 30,
         granularity_minutes: int = 5,
-        seed: int = 42
+        seed: int = 42,
+        tower_ids: Optional[List[str]] = None,
     ):
-        self.num_towers = num_towers
+        # Pass the CDR generator's tower ids so KPIs and CDRs describe the same cells.
+        self.tower_ids = list(tower_ids) if tower_ids else None
+        self.num_towers = len(self.tower_ids) if self.tower_ids else num_towers
         self.output_dir = output_dir
         self.date_range_days = date_range_days
         self.granularity_minutes = granularity_minutes
@@ -94,7 +97,9 @@ class NetworkKPIGenerator:
         self.fraud_hotspot_towers = set()
 
     def _generate_tower_ids(self) -> List[str]:
-        """Generate unique tower identifiers"""
+        """Generate unique tower identifiers (or reuse the shared registry)"""
+        if self.tower_ids:
+            return list(self.tower_ids)
         towers = []
         for i in range(self.num_towers):
             tower_type = self.rng.choice(['macro', 'micro', 'pico'])

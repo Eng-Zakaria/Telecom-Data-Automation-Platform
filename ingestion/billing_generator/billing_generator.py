@@ -158,6 +158,14 @@ class BillingGenerator:
             elif payment_status == 'overdue':
                 last_payment = datetime.now() - timedelta(days=int(self.rng.integers(30, 90)))
 
+            # Months behind must agree with the status (previously always 0)
+            if payment_status == 'overdue':
+                overdue_months = int(self.rng.integers(1, 4))
+            elif payment_status == 'defaulted':
+                overdue_months = int(self.rng.integers(4, 13))
+            else:
+                overdue_months = 0
+
             # Lifetime value
             lifetime_value = round(total_charge * tenure_days / 30, 2)
 
@@ -174,6 +182,7 @@ class BillingGenerator:
                 payment_status=payment_status,
                 payment_method=payment_method,
                 last_payment_date=last_payment,
+                num_overdue_months=overdue_months,
                 lifetime_value=lifetime_value
             ))
 

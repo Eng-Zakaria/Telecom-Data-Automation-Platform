@@ -1,56 +1,40 @@
-# Telecom Platform - Makefile for local development
+# Telecom lakehouse - common tasks (see README for the full story)
+LAB ?= ../azure-local-lab
 
-.PHONY: up down logs status init validate apply destroy
+.PHONY: lab up down run run-stream test it lint tf-validate checkov dashboard lineage
 
-# Local dev stack
-up:
-	docker-compose up -d
+lab:            ## start shared Azure emulators (Azurite, Event Hubs, Grafana)
+	cd $(LAB) && ./scripts/init-env.sh && docker compose --profile streaming up -d
+
+up: lab         ## emulators + Marquez
+	docker compose up -d
 
 down:
-	docker-compose down
+	docker compose down
 
-logs:
-	docker-compose logs -f
+run:            ## batch run with 2% injected corruption
+	uv run python -m lakehouse --cdr 5000 --chaos 0.02
 
-status:
-	docker-compose ps
+run-stream:     ## CDRs through Event Hubs, lineage to Marquez
+	OPENLINEAGE_URL=http://localhost:5000 uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream
 
-restart:
-	docker-compose restart
+test:           ## unit tests (no containers)
+	uv run pytest
 
-# Terraform
-tf-init:
-	cd infra && terraform init
+it:             ## integration tests against the emulators
+	uv run pytest -m integration
 
-tf-plan:
-	cd infra/environments/dev && terraform plan -var-file="dev.tfvars"
-
-tf-apply:
-	cd infra/environments/dev && terraform apply -var-file="dev.tfvars" -auto-approve
-
-tf-destroy:
-	cd infra/environments/dev && terraform destroy -var-file="dev.tfvars" -auto-approve
-
-# Documentation
-docs:
-	python -m mkdocs serve
-
-# Testing
-test:
-	pytest tests/
-
-# Code quality
 lint:
-	black --check .
-	isort --check .
-	flake8 .
-
-format:
-	black .
-	isort .
-
-# CI/CD
-ci: lint test tf-validate
+	uv run ruff check lakehouse scripts tests/test_lakehouse_quality.py tests/test_lakehouse_integration.py
 
 tf-validate:
-	cd infra && terraform fmt -check && terraform validate
+	for e in dev staging prod ephemeral; do (cd infra/environments/$$e && terraform init -backend=false -input=false >/dev/null && terraform validate) || exit 1; done
+
+checkov:
+	uvx --from checkov checkov -d infra --config-file infra/.checkov.yml
+
+dashboard:      ## install the Grafana dashboard
+	uv run python scripts/grafana_import.py
+
+lineage:        ## assert every gold table traces back to a source
+	uv run python scripts/check_lineage.py --marquez http://localhost:5000

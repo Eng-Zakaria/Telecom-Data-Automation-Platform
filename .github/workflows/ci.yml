@@ -1,111 +1,73 @@
-name: CI Pipeline
+name: ci
 
 on:
+  push: { branches: [main, master] }
   pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The project depends on cloudkit from azure-local-lab (path dependency ../azure-local-lab),
+# so both repos are checked out side by side.
+env:
+  LAB_REPO: ${{ vars.LAB_REPO || 'Eng-Zakaria/azure-local-lab' }}
 
 jobs:
-  lint:
-    name: Lint Code
+  unit:
+    name: lint + unit tests
     runs-on: ubuntu-latest
+    defaults: { run: { working-directory: telecom } }
     steps:
       - uses: actions/checkout@v4
+        with: { path: telecom }
+      - uses: actions/checkout@v4
+        with: { repository: "${{ env.LAB_REPO }}", path: azure-local-lab }
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - name: ruff (new code is held to the bar; legacy modules are tracked in BACKLOG)
+        run: uv run ruff check lakehouse scripts tests/test_lakehouse_quality.py tests/test_lakehouse_integration.py
+      - run: uv run pytest --cov=lakehouse --cov=ingestion --cov-report=term-missing:skip-covered
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install black isort flake8
-          cd ingestion && pip install -r requirements.txt
-
-      - name: Run linters
-        run: |
-          black --check ingestion/ ml/ quality/
-          isort --check-only ingestion/ ml/ quality/
-          flake8 ingestion/ ml/ quality/
-
-  terraform-validate:
-    name: Validate Terraform
+  integration:
+    name: pipeline against Azure emulators
     runs-on: ubuntu-latest
+    needs: unit
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.5.0'
-
-      - name: Terraform fmt check
-        run: terraform fmt -check -recursive infra/
-
-      - name: Terraform validate
-        run: |
-          cd infra
-          terraform init -backend=false
-          terraform validate
-
-  dbt-test:
-    name: Run dbt Tests
-    runs-on: ubuntu-latest
-    steps:
+        with: { path: telecom }
       - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+        with: { repository: "${{ env.LAB_REPO }}", path: azure-local-lab }
+      - uses: astral-sh/setup-uv@v5
+      - name: start Azurite, Event Hubs emulator, Grafana LGTM
+        working-directory: azure-local-lab
+        run: |
+          ./scripts/init-env.sh
+          docker compose --profile streaming up -d --wait azurite observability
+          docker compose --profile streaming up -d eventhubs
+          timeout 150 bash -c 'until curl -sf localhost:5300/health; do sleep 3; done'
+      - name: start Marquez (lineage backend)
+        working-directory: telecom
+        run: |
+          docker compose up -d
+          timeout 180 bash -c 'until curl -sf localhost:5000/api/v1/namespaces; do sleep 4; done'
+      - working-directory: telecom
+        run: uv sync
+      - name: integration tests
+        working-directory: telecom
+        run: uv run pytest -m integration -v
+      - name: full run, streamed, lineage to Marquez
+        working-directory: telecom
+        env: { OPENLINEAGE_URL: "http://localhost:5000" }
+        run: uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream --prefix ci/${{ github.run_id }}
+      - name: lineage graph is complete
+        working-directory: telecom
+        run: uv run python scripts/check_lineage.py --marquez http://localhost:5000
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          python-version: '3.10'
-
-      - name: Install dbt
-        run: |
-          pip install dbt-core dbt-postgres
-
-      - name: Run dbt tests
-        run: |
-          cd transform/dbt
-          dbt compile
-          dbt test
-
-  unit-tests:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install pytest pytest-cov
-          cd ingestion && pip install -r requirements.txt
-          cd ml && pip install -r requirements.txt
-
-      - name: Run tests
-        run: |
-          pytest tests/ -v --cov=ingestion --cov=ml --cov=quality
-
-  data-quality:
-    name: Run Great Expectations
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install Great Expectations
-        run: pip install great-expectations
-
-      - name: Run expectations
-        run: |
-          cd quality
-          python run_expectations.py
+          name: run-artifacts
+          path: telecom/artifacts/
+      - if: failure()
+        working-directory: azure-local-lab
+        run: docker compose --profile streaming logs --tail 80

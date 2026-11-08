@@ -1,6 +1,11 @@
 variable "name" {
   type        = string
-  description = "Storage account name"
+  description = "Storage account name (3-24 lowercase letters/digits, globally unique)"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]{3,24}$", var.name))
+    error_message = "Storage account names are 3-24 lowercase letters and digits."
+  }
 }
 
 variable "resource_group_name" {
@@ -21,17 +26,29 @@ variable "environment" {
 variable "use_local_dev" {
   type        = bool
   default     = false
-  description = "When true, uses Azurite instead of Azure Storage"
+  description = "When true, nothing is created (use Azurite)"
 }
 
-variable "keyvault_id" {
+variable "replication_type" {
   type        = string
-  description = "Key Vault ID for network access"
-  default     = ""
+  default     = "LRS"
+  description = "LRS for dev; ZRS or GZRS for prod"
+}
+
+variable "containers" {
+  type        = list(string)
+  default     = ["bronze", "silver", "gold", "quarantine"]
+  description = "Lake containers"
+}
+
+variable "soft_delete_days" {
+  type        = number
+  default     = 7
+  description = "Blob and container soft-delete retention"
 }
 
 variable "tags" {
   type        = map(string)
-  description = "Tags to apply"
   default     = {}
+  description = "Tags to apply"
 }
