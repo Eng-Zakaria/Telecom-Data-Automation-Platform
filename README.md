@@ -153,4 +153,4 @@ This repository began as a generated scaffold. Getting it to run end to end surf
 
 ## License
 
-Proprietary - Project
+MIT - see [LICENSE](LICENSE)
