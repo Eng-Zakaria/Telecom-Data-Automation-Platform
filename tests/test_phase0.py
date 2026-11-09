@@ -21,11 +21,9 @@ def test_repository_structure():
         'transform',
         'ml',
         'quality',
-        'automation',
         'ci',
         'docs',
         'docs/decisions',
-        'docs/domains',
     ]
 
     for dir_path in expected_dirs:

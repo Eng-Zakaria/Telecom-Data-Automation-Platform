@@ -1,0 +1,2010 @@
+{
+  "test_model:1.0.0": {
+    "model_id": "test_model",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:19:19.836528",
+    "trained_at": "2026-09-04T00:19:19.836543",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a:1.0.0": {
+    "model_id": "model_a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:19:19.898100",
+    "trained_at": "2026-09-04T00:19:19.898112",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b:1.0.0": {
+    "model_id": "model_b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:19:19.899269",
+    "trained_at": "2026-09-04T00:19:19.899282",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2:2.0.0": {
+    "model_id": "churn_v2",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:19:23.033467",
+    "trained_at": "2026-09-04T00:19:23.033477",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_59ee53e6:1.0.0": {
+    "model_id": "test_model_59ee53e6",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:22:13.144599",
+    "trained_at": "2026-09-04T00:22:13.144612",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_f2760639:1.0.0": {
+    "model_id": "test_model_f2760639",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:22:13.168354",
+    "trained_at": "2026-09-04T00:22:13.168368",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_fdcee936:1.0.0": {
+    "model_id": "model_a_fdcee936",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:22:13.198589",
+    "trained_at": "2026-09-04T00:22:13.198602",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_aaa1cd3a:1.0.0": {
+    "model_id": "model_b_aaa1cd3a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:22:13.200554",
+    "trained_at": "2026-09-04T00:22:13.200568",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_1fa57aea:1.0.0": {
+    "model_id": "test_model_1fa57aea",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:23:18.211591",
+    "trained_at": "2026-09-04T00:23:18.211604",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_a1a921f8:1.0.0": {
+    "model_id": "test_model_a1a921f8",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:23:18.234921",
+    "trained_at": "2026-09-04T00:23:18.234938",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_647e6fb4:1.0.0": {
+    "model_id": "model_a_647e6fb4",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:23:18.262549",
+    "trained_at": "2026-09-04T00:23:18.262564",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_5c25a486:1.0.0": {
+    "model_id": "model_b_5c25a486",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:23:18.264570",
+    "trained_at": "2026-09-04T00:23:18.264583",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_369b9b4f:2.0.0": {
+    "model_id": "churn_v2_369b9b4f",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:23:21.273843",
+    "trained_at": "2026-09-04T00:23:21.273854",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_1083130b:1.0.0": {
+    "model_id": "test_model_1083130b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:24:24.477568",
+    "trained_at": "2026-09-04T00:24:24.477583",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_031d416f:1.0.0": {
+    "model_id": "test_model_031d416f",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:24:24.499528",
+    "trained_at": "2026-09-04T00:24:24.499541",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_881c4ab0:1.0.0": {
+    "model_id": "model_a_881c4ab0",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:24:24.524050",
+    "trained_at": "2026-09-04T00:24:24.524064",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_3676b47a:1.0.0": {
+    "model_id": "model_b_3676b47a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:24:24.526482",
+    "trained_at": "2026-09-04T00:24:24.526502",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_ff3d208f:2.0.0": {
+    "model_id": "churn_v2_ff3d208f",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:24:27.728162",
+    "trained_at": "2026-09-04T00:24:27.728175",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_1c7bdd45:1.0.0": {
+    "model_id": "test_model_1c7bdd45",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:29:07.118604",
+    "trained_at": "2026-09-04T00:29:07.118618",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_8bd45e58:1.0.0": {
+    "model_id": "test_model_8bd45e58",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:29:07.139768",
+    "trained_at": "2026-09-04T00:29:07.139785",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_df673524:1.0.0": {
+    "model_id": "model_a_df673524",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:29:07.163766",
+    "trained_at": "2026-09-04T00:29:07.163780",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_f905fc93:1.0.0": {
+    "model_id": "model_b_f905fc93",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:29:07.167954",
+    "trained_at": "2026-09-04T00:29:07.167970",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_6e37cc59:2.0.0": {
+    "model_id": "churn_v2_6e37cc59",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:29:09.918438",
+    "trained_at": "2026-09-04T00:29:09.918449",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_e15d16f0:1.0.0": {
+    "model_id": "test_model_e15d16f0",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:30:19.096852",
+    "trained_at": "2026-09-04T00:30:19.096864",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_126f65de:1.0.0": {
+    "model_id": "test_model_126f65de",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:30:19.117257",
+    "trained_at": "2026-09-04T00:30:19.117274",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_23777e93:1.0.0": {
+    "model_id": "model_a_23777e93",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:30:19.143249",
+    "trained_at": "2026-09-04T00:30:19.143261",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_878dee22:1.0.0": {
+    "model_id": "model_b_878dee22",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:30:19.146144",
+    "trained_at": "2026-09-04T00:30:19.146157",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_54dd27f9:2.0.0": {
+    "model_id": "churn_v2_54dd27f9",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:30:21.986735",
+    "trained_at": "2026-09-04T00:30:21.986750",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_ff0c3080:1.0.0": {
+    "model_id": "test_model_ff0c3080",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:40:11.598601",
+    "trained_at": "2026-09-04T00:40:11.598614",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_abe963af:1.0.0": {
+    "model_id": "test_model_abe963af",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:40:11.623028",
+    "trained_at": "2026-09-04T00:40:11.623045",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_8a07f13e:1.0.0": {
+    "model_id": "model_a_8a07f13e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:40:11.653710",
+    "trained_at": "2026-09-04T00:40:11.653722",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_724f9473:1.0.0": {
+    "model_id": "model_b_724f9473",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:40:11.656978",
+    "trained_at": "2026-09-04T00:40:11.656992",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_19f1b8c2:2.0.0": {
+    "model_id": "churn_v2_19f1b8c2",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:40:14.202177",
+    "trained_at": "2026-09-04T00:40:14.202188",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_4a715ce3:1.0.0": {
+    "model_id": "test_model_4a715ce3",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:41:37.885585",
+    "trained_at": "2026-09-04T00:41:37.885597",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_f897012e:1.0.0": {
+    "model_id": "test_model_f897012e",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:41:37.908263",
+    "trained_at": "2026-09-04T00:41:37.908277",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_5e2f485b:1.0.0": {
+    "model_id": "model_a_5e2f485b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:41:37.935432",
+    "trained_at": "2026-09-04T00:41:37.935450",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_560a8794:1.0.0": {
+    "model_id": "model_b_560a8794",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:41:37.939500",
+    "trained_at": "2026-09-04T00:41:37.939514",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_7d33e39f:2.0.0": {
+    "model_id": "churn_v2_7d33e39f",
+    "version": "2.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:41:40.572542",
+    "trained_at": "2026-09-04T00:41:40.572554",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_0a385a62:1.0.0": {
+    "model_id": "test_model_0a385a62",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:56:22.785729",
+    "trained_at": "2026-09-04T00:56:22.785742",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_945454a8:1.0.0": {
+    "model_id": "test_model_945454a8",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:56:22.812847",
+    "trained_at": "2026-09-04T00:56:22.812861",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_21f63521:1.0.0": {
+    "model_id": "model_a_21f63521",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:56:22.843994",
+    "trained_at": "2026-09-04T00:56:22.844008",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_adb712b6:1.0.0": {
+    "model_id": "model_b_adb712b6",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:56:22.848123",
+    "trained_at": "2026-09-04T00:56:22.848137",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_2f8ea7fc:2.0.0": {
+    "model_id": "churn_v2_2f8ea7fc",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:56:26.876817",
+    "trained_at": "2026-09-04T00:56:26.876828",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_ebce5960:1.0.0": {
+    "model_id": "test_model_ebce5960",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:58:08.271552",
+    "trained_at": "2026-09-04T00:58:08.271572",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_31be240a:1.0.0": {
+    "model_id": "test_model_31be240a",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:58:08.294950",
+    "trained_at": "2026-09-04T00:58:08.294963",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_88caf35b:1.0.0": {
+    "model_id": "model_a_88caf35b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:58:08.324128",
+    "trained_at": "2026-09-04T00:58:08.324140",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_8cbe4675:1.0.0": {
+    "model_id": "model_b_8cbe4675",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T00:58:08.328556",
+    "trained_at": "2026-09-04T00:58:08.328575",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_e33d43e7:2.0.0": {
+    "model_id": "churn_v2_e33d43e7",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T00:58:11.094695",
+    "trained_at": "2026-09-04T00:58:11.094706",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_905e350b:1.0.0": {
+    "model_id": "test_model_905e350b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:05:19.352602",
+    "trained_at": "2026-09-04T01:05:19.352615",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_11affdfd:1.0.0": {
+    "model_id": "test_model_11affdfd",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:05:19.376231",
+    "trained_at": "2026-09-04T01:05:19.376244",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_2a97936c:1.0.0": {
+    "model_id": "model_a_2a97936c",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:05:19.401514",
+    "trained_at": "2026-09-04T01:05:19.401526",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_d4de7283:1.0.0": {
+    "model_id": "model_b_d4de7283",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:05:19.406621",
+    "trained_at": "2026-09-04T01:05:19.406638",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_afd422ff:2.0.0": {
+    "model_id": "churn_v2_afd422ff",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:05:22.948567",
+    "trained_at": "2026-09-04T01:05:22.948579",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_ad5be80f:1.0.0": {
+    "model_id": "test_model_ad5be80f",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:25:54.035469",
+    "trained_at": "2026-09-04T01:25:54.035488",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_93cbc651:1.0.0": {
+    "model_id": "test_model_93cbc651",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:25:54.058346",
+    "trained_at": "2026-09-04T01:25:54.058362",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_667a3b63:1.0.0": {
+    "model_id": "model_a_667a3b63",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:25:54.090392",
+    "trained_at": "2026-09-04T01:25:54.090409",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_9ec47fdf:1.0.0": {
+    "model_id": "model_b_9ec47fdf",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:25:54.096885",
+    "trained_at": "2026-09-04T01:25:54.096905",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_fcc7a435:2.0.0": {
+    "model_id": "churn_v2_fcc7a435",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:25:56.807657",
+    "trained_at": "2026-09-04T01:25:56.807669",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_da8c6362:1.0.0": {
+    "model_id": "test_model_da8c6362",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:30:52.066157",
+    "trained_at": "2026-09-04T01:30:52.066172",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_da430d11:1.0.0": {
+    "model_id": "test_model_da430d11",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:30:52.090607",
+    "trained_at": "2026-09-04T01:30:52.090623",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_cbf8756b:1.0.0": {
+    "model_id": "model_a_cbf8756b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:30:52.122765",
+    "trained_at": "2026-09-04T01:30:52.122782",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_1df08fa5:1.0.0": {
+    "model_id": "model_b_1df08fa5",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:30:52.128732",
+    "trained_at": "2026-09-04T01:30:52.128749",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_49ef5097:2.0.0": {
+    "model_id": "churn_v2_49ef5097",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:30:54.826728",
+    "trained_at": "2026-09-04T01:30:54.826739",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_05bf3331:1.0.0": {
+    "model_id": "test_model_05bf3331",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:32:18.282443",
+    "trained_at": "2026-09-04T01:32:18.282456",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_58fc9a17:1.0.0": {
+    "model_id": "test_model_58fc9a17",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:32:18.310872",
+    "trained_at": "2026-09-04T01:32:18.310891",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_83846d4f:1.0.0": {
+    "model_id": "model_a_83846d4f",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:32:18.349275",
+    "trained_at": "2026-09-04T01:32:18.349294",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_3898f2bf:1.0.0": {
+    "model_id": "model_b_3898f2bf",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T01:32:18.355830",
+    "trained_at": "2026-09-04T01:32:18.355842",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_ae22b51b:2.0.0": {
+    "model_id": "churn_v2_ae22b51b",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T01:32:22.218320",
+    "trained_at": "2026-09-04T01:32:22.218333",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_31966e77:1.0.0": {
+    "model_id": "test_model_31966e77",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:12:42.544620",
+    "trained_at": "2026-09-04T10:12:42.544633",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_dbdfafe8:1.0.0": {
+    "model_id": "test_model_dbdfafe8",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:12:42.573998",
+    "trained_at": "2026-09-04T10:12:42.574014",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_80746e6e:1.0.0": {
+    "model_id": "model_a_80746e6e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:12:42.610348",
+    "trained_at": "2026-09-04T10:12:42.610362",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_a70f0561:1.0.0": {
+    "model_id": "model_b_a70f0561",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:12:42.616605",
+    "trained_at": "2026-09-04T10:12:42.616617",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_628ec7a4:2.0.0": {
+    "model_id": "churn_v2_628ec7a4",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:12:45.838209",
+    "trained_at": "2026-09-04T10:12:45.838225",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_0a4ab31c:1.0.0": {
+    "model_id": "test_model_0a4ab31c",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:35:18.844115",
+    "trained_at": "2026-09-04T10:35:18.844461",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_110256a5:1.0.0": {
+    "model_id": "test_model_110256a5",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:35:18.870329",
+    "trained_at": "2026-09-04T10:35:18.870347",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_7c76d04a:1.0.0": {
+    "model_id": "model_a_7c76d04a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:35:18.905311",
+    "trained_at": "2026-09-04T10:35:18.905324",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_c035dd67:1.0.0": {
+    "model_id": "model_b_c035dd67",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:35:18.913009",
+    "trained_at": "2026-09-04T10:35:18.913025",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_028ae952:2.0.0": {
+    "model_id": "churn_v2_028ae952",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:35:21.987979",
+    "trained_at": "2026-09-04T10:35:21.987991",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_52d6983e:1.0.0": {
+    "model_id": "test_model_52d6983e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:36:40.174676",
+    "trained_at": "2026-09-04T10:36:40.174691",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_8c003ad9:1.0.0": {
+    "model_id": "test_model_8c003ad9",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:36:40.204278",
+    "trained_at": "2026-09-04T10:36:40.204291",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_b8e5e480:1.0.0": {
+    "model_id": "model_a_b8e5e480",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:36:40.237360",
+    "trained_at": "2026-09-04T10:36:40.237376",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_6a3e244b:1.0.0": {
+    "model_id": "model_b_6a3e244b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T10:36:40.245248",
+    "trained_at": "2026-09-04T10:36:40.245262",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_692199f4:2.0.0": {
+    "model_id": "churn_v2_692199f4",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T10:36:43.935884",
+    "trained_at": "2026-09-04T10:36:43.935895",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_2f02a23a:1.0.0": {
+    "model_id": "test_model_2f02a23a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:00:28.283570",
+    "trained_at": "2026-09-04T11:00:28.283583",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_7e1d1b9a:1.0.0": {
+    "model_id": "test_model_7e1d1b9a",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T11:00:28.316000",
+    "trained_at": "2026-09-04T11:00:28.316014",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_21db4757:1.0.0": {
+    "model_id": "model_a_21db4757",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:00:28.349888",
+    "trained_at": "2026-09-04T11:00:28.349908",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_3724ba1e:1.0.0": {
+    "model_id": "model_b_3724ba1e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:00:28.357939",
+    "trained_at": "2026-09-04T11:00:28.357953",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_058e864a:2.0.0": {
+    "model_id": "churn_v2_058e864a",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T11:00:31.067119",
+    "trained_at": "2026-09-04T11:00:31.067132",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_ae407131:1.0.0": {
+    "model_id": "test_model_ae407131",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:28:15.052522",
+    "trained_at": "2026-09-04T11:28:15.052536",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_10bd4bac:1.0.0": {
+    "model_id": "test_model_10bd4bac",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T11:28:15.084792",
+    "trained_at": "2026-09-04T11:28:15.084806",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_213ee828:1.0.0": {
+    "model_id": "model_a_213ee828",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:28:15.121140",
+    "trained_at": "2026-09-04T11:28:15.121153",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_bafe1b5b:1.0.0": {
+    "model_id": "model_b_bafe1b5b",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T11:28:15.128731",
+    "trained_at": "2026-09-04T11:28:15.128743",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_c8703aad:2.0.0": {
+    "model_id": "churn_v2_c8703aad",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T11:28:17.756971",
+    "trained_at": "2026-09-04T11:28:17.756987",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_f357e442:1.0.0": {
+    "model_id": "test_model_f357e442",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T14:34:43.994419",
+    "trained_at": "2026-09-04T14:34:43.994437",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_f70890e2:1.0.0": {
+    "model_id": "test_model_f70890e2",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T14:40:44.072431",
+    "trained_at": "2026-09-04T14:40:44.072447",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_b0a8169a:1.0.0": {
+    "model_id": "test_model_b0a8169a",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:07:11.851435",
+    "trained_at": "2026-09-04T15:07:11.851448",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_9343a849:1.0.0": {
+    "model_id": "test_model_9343a849",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:08:40.578773",
+    "trained_at": "2026-09-04T15:08:40.578793",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_49fe43d5:1.0.0": {
+    "model_id": "test_model_49fe43d5",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:08:40.612914",
+    "trained_at": "2026-09-04T15:08:40.612931",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_8d827cf4:1.0.0": {
+    "model_id": "model_a_8d827cf4",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:08:40.651184",
+    "trained_at": "2026-09-04T15:08:40.651197",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_2fad598f:1.0.0": {
+    "model_id": "model_b_2fad598f",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:08:40.660716",
+    "trained_at": "2026-09-04T15:08:40.660734",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_66f0d6e1:2.0.0": {
+    "model_id": "churn_v2_66f0d6e1",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:08:43.635264",
+    "trained_at": "2026-09-04T15:08:43.635275",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_af42745a:1.0.0": {
+    "model_id": "test_model_af42745a",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:13:19.070571",
+    "trained_at": "2026-09-04T15:13:19.070584",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_bc01cf90:1.0.0": {
+    "model_id": "test_model_bc01cf90",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:28:17.681645",
+    "trained_at": "2026-09-04T15:28:17.681658",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_f76d604e:1.0.0": {
+    "model_id": "test_model_f76d604e",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:30:27.510409",
+    "trained_at": "2026-09-04T15:30:27.510422",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_2d094be6:1.0.0": {
+    "model_id": "test_model_2d094be6",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:31:46.784118",
+    "trained_at": "2026-09-04T15:31:46.784133",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_e496442b:1.0.0": {
+    "model_id": "test_model_e496442b",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:31:46.819048",
+    "trained_at": "2026-09-04T15:31:46.819061",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_f599985e:1.0.0": {
+    "model_id": "model_a_f599985e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:31:46.858505",
+    "trained_at": "2026-09-04T15:31:46.858518",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_22731b73:1.0.0": {
+    "model_id": "model_b_22731b73",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:31:46.870331",
+    "trained_at": "2026-09-04T15:31:46.870347",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_3ab2a4ad:2.0.0": {
+    "model_id": "churn_v2_3ab2a4ad",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:31:49.736656",
+    "trained_at": "2026-09-04T15:31:49.736671",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_65556be3:1.0.0": {
+    "model_id": "test_model_65556be3",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:51:25.494724",
+    "trained_at": "2026-09-04T15:51:25.494740",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_78ed4e1e:1.0.0": {
+    "model_id": "test_model_78ed4e1e",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:52:55.872259",
+    "trained_at": "2026-09-04T15:52:55.872279",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_9f212d98:1.0.0": {
+    "model_id": "test_model_9f212d98",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:52:55.908939",
+    "trained_at": "2026-09-04T15:52:55.908955",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_021c2391:1.0.0": {
+    "model_id": "model_a_021c2391",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:52:55.956676",
+    "trained_at": "2026-09-04T15:52:55.956693",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_e2caa1c7:1.0.0": {
+    "model_id": "model_b_e2caa1c7",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-09-04T15:52:55.970477",
+    "trained_at": "2026-09-04T15:52:55.970494",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_bca31bef:2.0.0": {
+    "model_id": "churn_v2_bca31bef",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-09-04T15:52:58.900862",
+    "trained_at": "2026-09-04T15:52:58.900874",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_ee5a1300:1.0.0": {
+    "model_id": "test_model_ee5a1300",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T22:59:07.641921",
+    "trained_at": "2026-11-08T22:59:07.641921",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_9a73e584:1.0.0": {
+    "model_id": "test_model_9a73e584",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T22:59:07.683129",
+    "trained_at": "2026-11-08T22:59:07.683129",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_205682ed:1.0.0": {
+    "model_id": "model_a_205682ed",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T22:59:07.733789",
+    "trained_at": "2026-11-08T22:59:07.733789",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_2655a242:1.0.0": {
+    "model_id": "model_b_2655a242",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T22:59:07.746495",
+    "trained_at": "2026-11-08T22:59:07.746495",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_fe32abb1:2.0.0": {
+    "model_id": "churn_v2_fe32abb1",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T22:59:12.454338",
+    "trained_at": "2026-11-08T22:59:12.454338",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_16acc034:1.0.0": {
+    "model_id": "test_model_16acc034",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:14:07.427703",
+    "trained_at": "2026-11-08T23:14:07.427703",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_283f58dc:1.0.0": {
+    "model_id": "test_model_283f58dc",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:14:46.592956",
+    "trained_at": "2026-11-08T23:14:46.592956",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_a7b995c3:1.0.0": {
+    "model_id": "test_model_a7b995c3",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:16:15.870691",
+    "trained_at": "2026-11-08T23:16:15.870691",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_da07760e:1.0.0": {
+    "model_id": "test_model_da07760e",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:16:15.911487",
+    "trained_at": "2026-11-08T23:16:15.911487",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_4f2620f1:1.0.0": {
+    "model_id": "model_a_4f2620f1",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:16:15.955793",
+    "trained_at": "2026-11-08T23:16:15.955793",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_201b212a:1.0.0": {
+    "model_id": "model_b_201b212a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:16:15.975028",
+    "trained_at": "2026-11-08T23:16:15.975028",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_cf02563c:2.0.0": {
+    "model_id": "churn_v2_cf02563c",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:16:19.375240",
+    "trained_at": "2026-11-08T23:16:19.375240",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_4896748e:1.0.0": {
+    "model_id": "test_model_4896748e",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:41:26.064740",
+    "trained_at": "2026-11-08T23:41:26.064740",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_baffa102:1.0.0": {
+    "model_id": "test_model_baffa102",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:44:38.582220",
+    "trained_at": "2026-11-08T23:44:38.582220",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_5aef96f4:1.0.0": {
+    "model_id": "test_model_5aef96f4",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:44:38.638490",
+    "trained_at": "2026-11-08T23:44:38.638490",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_fedfc22a:1.0.0": {
+    "model_id": "model_a_fedfc22a",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:44:38.785367",
+    "trained_at": "2026-11-08T23:44:38.785367",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_033e5976:1.0.0": {
+    "model_id": "model_b_033e5976",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-08T23:44:38.821203",
+    "trained_at": "2026-11-08T23:44:38.821203",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_a2c53a2e:2.0.0": {
+    "model_id": "churn_v2_a2c53a2e",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-08T23:44:54.858952",
+    "trained_at": "2026-11-08T23:44:54.858952",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_38821c4d:1.0.0": {
+    "model_id": "test_model_38821c4d",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-09T11:16:13.656088",
+    "trained_at": "2026-11-09T11:16:13.656088",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "ml/test/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_26d79bf6:1.0.0": {
+    "model_id": "test_model_26d79bf6",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-09T11:17:35.755460",
+    "trained_at": "2026-11-09T11:17:35.755460",
+    "metrics": {
+      "accuracy": 0.85,
+      "auc": 0.9
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "test_model_aab72af7:1.0.0": {
+    "model_id": "test_model_aab72af7",
+    "version": "1.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-09T11:17:35.793654",
+    "trained_at": "2026-11-09T11:17:35.793654",
+    "metrics": {
+      "accuracy": 0.85
+    },
+    "artifact_path": "test/path/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_a_f0c35f42:1.0.0": {
+    "model_id": "model_a_f0c35f42",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-09T11:17:35.840064",
+    "trained_at": "2026-11-09T11:17:35.840064",
+    "metrics": {
+      "accuracy": 0.8
+    },
+    "artifact_path": "path/a.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "model_b_be98145f:1.0.0": {
+    "model_id": "model_b_be98145f",
+    "version": "1.0.0",
+    "status": "draft",
+    "stage": "development",
+    "created_at": "2026-11-09T11:17:35.854704",
+    "trained_at": "2026-11-09T11:17:35.854704",
+    "metrics": {
+      "accuracy": 0.75
+    },
+    "artifact_path": "path/b.pkl",
+    "lineage": {},
+    "metadata": {}
+  },
+  "churn_v2_36daa4dc:2.0.0": {
+    "model_id": "churn_v2_36daa4dc",
+    "version": "2.0.0",
+    "status": "ready",
+    "stage": "staging",
+    "created_at": "2026-11-09T11:17:39.330218",
+    "trained_at": "2026-11-09T11:17:39.330218",
+    "metrics": {
+      "roc_auc": 0.88,
+      "accuracy": 0.85
+    },
+    "artifact_path": "ml/churn_model/model.pkl",
+    "lineage": {},
+    "metadata": {}
+  }
+}
