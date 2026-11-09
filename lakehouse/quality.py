@@ -26,7 +26,12 @@ def not_null(column: str) -> RowRule:
     return RowRule(f"{column}_not_null", column, lambda s: s.notna())
 
 
-def between(column: str, lo: float, hi: float) -> RowRule:
+def between(column: str, lo: float, hi: float, *, allow_null: bool = False) -> RowRule:
+    """Range check. allow_null=True for optional fields (e.g. unresolved tickets)."""
+    if allow_null:
+        return RowRule(
+            f"{column}_between_{lo}_{hi}", column, lambda s: s.isna() | s.between(lo, hi)
+        )
     return RowRule(f"{column}_between_{lo}_{hi}", column, lambda s: s.between(lo, hi))
 
 
@@ -172,4 +177,108 @@ BILLING = Contract(
     ),
 )
 
-CONTRACTS = {c.table: c for c in (CDR, NETWORK_KPI, BILLING)}
+BILLING_MONTHLY = Contract(
+    table="billing_monthly",
+    key=("customer_id", "billing_month"),
+    rules=(
+        not_null("customer_id"),
+        not_null("billing_month"),
+        between("base_charge", 0, 100_000),
+        between("usage_charge", 0, 100_000),
+        between("total_charge", 0, 200_000),
+    ),
+)
+
+COMPLAINTS = Contract(
+    table="complaints",
+    key=("complaint_id",),
+    rules=(
+        not_null("complaint_id"),
+        not_null("posted_date"),
+        not_null("category"),
+        accepted("sentiment", ["positive", "neutral", "negative", "very_negative"]),
+        accepted("severity", ["low", "medium", "high", "critical"]),
+        between("resolution_time_days", 0, 365, allow_null=True),
+    ),
+)
+
+ROAMING_SESSIONS = Contract(
+    table="roaming_sessions",
+    key=("session_id",),
+    rules=(
+        not_null("session_id"),
+        not_null("customer_id"),
+        not_null("partner_id"),
+        between("duration_seconds", 0, 86_400),
+        between("data_mb", 0, 100_000),
+        between("settlement_amount", 0, 100_000),
+    ),
+)
+
+ROAMING_PARTNERS = Contract(
+    table="roaming_partners",
+    key=("partner_id",),
+    rules=(not_null("partner_id"), between("settlement_rate_per_min", 0, 100)),
+)
+
+ROAMING_SETTLEMENTS = Contract(
+    table="roaming_settlements",
+    key=("partner_id", "settlement_period"),
+    rules=(not_null("partner_id"), not_null("settlement_period")),
+)
+
+CAMPAIGNS = Contract(
+    table="campaigns",
+    key=("campaign_id",),
+    rules=(not_null("campaign_id"), not_null("start_date"), between("budget", 0, 10_000_000)),
+)
+
+CAMPAIGN_RESPONSES = Contract(
+    table="campaign_responses",
+    key=("response_id",),
+    rules=(
+        not_null("response_id"),
+        not_null("campaign_id"),
+        not_null("hashed_id"),
+        between("revenue_generated", 0, 1_000_000),
+    ),
+)
+
+PLANS = Contract(
+    table="plans",
+    key=("plan_id",),
+    rules=(
+        not_null("plan_id"),
+        accepted("type", ["prepaid", "postpaid", "enterprise"]),
+        between("monthly_fee", 0, 10_000),
+    ),
+)
+
+TOWERS = Contract(
+    table="towers",
+    key=("tower_id",),
+    rules=(
+        not_null("tower_id"),
+        accepted("tower_type", ["macro", "micro", "pico"]),
+        between("lat", -90, 90),
+        between("lon", -180, 180),
+    ),
+)
+
+CONTRACTS = {
+    c.table: c
+    for c in (
+        TOWERS,
+        PLANS,
+        CDR,
+        NETWORK_KPI,
+        BILLING,
+        BILLING_MONTHLY,
+        COMPLAINTS,
+        ROAMING_SESSIONS,
+        ROAMING_PARTNERS,
+        ROAMING_SETTLEMENTS,
+        CAMPAIGNS,
+        CAMPAIGN_RESPONSES,
+    )
+}

@@ -9,6 +9,7 @@
 SELECT
     session_id,
     customer_id,
+    {{ subscriber_key('customer_id') }} AS subscriber_key,
     partner_id,
     start_time,
     end_time,
@@ -19,7 +20,7 @@ SELECT
     roaming_type,
     charging_key,
     settlement_amount,
-    DATE(start_time) as roaming_date,
+    CAST(start_time AS DATE) as roaming_date,
     HOUR(start_time) as roaming_hour,
     CASE
         WHEN roaming_type = 'voice' THEN 'voice_call'
@@ -37,5 +38,5 @@ SELECT
         ELSE 'light_usage'
     END as usage_category,
     CURRENT_TIMESTAMP as staging_ingestion_timestamp
-FROM {{ source('bronze', 'roaming_sessions_raw') }}
+FROM {{ source('silver', 'roaming_sessions') }}
 WHERE session_id IS NOT NULL

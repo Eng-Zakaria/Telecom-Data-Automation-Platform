@@ -1,97 +1,127 @@
 {{ config(
     materialized = 'table',
-    tags = ['marts', 'revenue_assurance', 'leakage']
+    tags = ['marts', 'revenue_assurance']
 ) }}
 
--- Revenue Leakage Detection
--- Identifies potential revenue losses from billing errors and fraud
+-- Revenue assurance: where does rated usage not match what was billed?
+-- Three leakage signals per subscriber for the as-of invoice month:
+--   1. billing discrepancy  (rated CDR usage vs invoiced usage charge, +/-20% tolerance)
+--   2. zero-rated usage      (charging_key = 0 on billable traffic)
+--   3. roaming margin gap    (partner settlement cost not recovered at retail)
+-- Every CTE is keyed on subscriber_key, the pseudonymous id shared by all feeds.
 
-WITH usage_vs_billing AS (
-    SELECT
-        b.customer_id,
-        b.billing_month,
-        b.total_charge as billed_amount,
-        COALESCE(SUM(CASE WHEN c.call_type = 'voice' THEN c.duration_seconds * 0.05 ELSE 0 END), 0) as calculated_voice_charges,
-        COALESCE(SUM(CASE WHEN c.call_type = 'sms' THEN 0.10 ELSE 0 END), 0) as calculated_sms_charges,
-        COALESCE(SUM(CASE WHEN c.call_type = 'data' THEN c.data_volume_mb * 0.50 ELSE 0 END), 0) as calculated_data_charges,
-        COUNT(*) as total_calls,
-        SUM(c.duration_seconds) as total_call_duration,
-        SUM(c.data_volume_mb) as total_data_used
-    FROM {{ ref('stg_billing_monthly') }} b
-    LEFT JOIN {{ ref('stg_cdr') }} c ON b.customer_id = c.caller_id
-        AND DATE(c.start_time) >= DATE_FORMAT(DATE_ADD(DATE(b.billing_month), -1), '%Y-%m-01')
-        AND DATE(c.start_time) < DATE_FORMAT(b.billing_month, '%Y-%m-01')
-    WHERE b.billing_month = DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m')
-    GROUP BY b.customer_id, b.billing_month, b.total_charge
+{% set voice_rate_per_sec = 0.05 / 60 %}
+{% set sms_rate = 0.10 %}
+{% set data_rate_per_mb = 0.01 %}
+{% set roaming_retail_markup = 2.5 %}
+
+WITH invoice_month AS (
+    SELECT max(billing_month) AS billing_month FROM {{ ref('stg_billing_monthly') }}
 ),
+
+-- The CDR window can cover only part of a month: scale rated usage up to a full month
+-- before comparing it with the invoice, or every invoice looks over-billed.
+coverage AS (
+    SELECT
+        strftime(date_trunc('month', start_time), '%Y-%m')                         AS billing_month,
+        count(DISTINCT CAST(start_time AS DATE))                                    AS observed_days,
+        any_value(day(last_day(start_time)))                                        AS days_in_month
+    FROM {{ ref('stg_cdr') }}
+    GROUP BY 1
+),
+
+rated_usage_raw AS (
+    SELECT
+        c.subscriber_key,
+        strftime(date_trunc('month', c.start_time), '%Y-%m')                       AS billing_month,
+        count(*)                                                                    AS events,
+        sum(CASE WHEN c.call_type = 'voice' THEN c.duration_seconds END)            AS voice_seconds,
+        sum(c.data_volume_mb)                                                       AS data_mb,
+        sum(CASE WHEN c.call_type = 'voice' THEN c.duration_seconds * {{ voice_rate_per_sec }}
+                 WHEN c.call_type = 'sms'   THEN {{ sms_rate }}
+                 WHEN c.call_type = 'data'  THEN c.data_volume_mb * {{ data_rate_per_mb }}
+                 ELSE 0 END)                                                        AS rated_amount_observed
+    FROM {{ ref('stg_cdr') }} c
+    GROUP BY ALL
+),
+
+rated_usage AS (
+    SELECT
+        u.*,
+        v.observed_days,
+        u.rated_amount_observed * v.days_in_month / v.observed_days                AS rated_amount
+    FROM rated_usage_raw u
+    JOIN coverage v USING (billing_month)
+),
+
 discrepancies AS (
     SELECT
-        customer_id,
-        billing_month,
-        billed_amount,
-        calculated_voice_charges,
-        calculated_sms_charges,
-        calculated_data_charges,
-        (calculated_voice_charges + calculated_sms_charges + calculated_data_charges) as calculated_total,
-        billed_amount - (calculated_voice_charges + calculated_sms_charges + calculated_data_charges) as discrepancy,
+        b.customer_id,
+        b.subscriber_key,
+        b.billing_month,
+        b.usage_charge                                                              AS billed_usage,
+        coalesce(u.rated_amount, 0)                                                 AS rated_usage,
+        coalesce(u.events, 0)                                                       AS usage_events,
+        u.observed_days,
+        b.usage_charge - coalesce(u.rated_amount, 0)                                AS discrepancy,
         CASE
-            WHEN billed_amount < (calculated_voice_charges + calculated_sms_charges + calculated_data_charges) * 0.8
-            THEN 'under_billed'
-            WHEN billed_amount > (calculated_voice_charges + calculated_sms_charges + calculated_data_charges) * 1.2
-            THEN 'over_billed'
+            WHEN u.rated_amount IS NULL THEN 'no_usage_recorded'
+            WHEN b.usage_charge < u.rated_amount * 0.8 THEN 'under_billed'
+            WHEN b.usage_charge > u.rated_amount * 1.2 THEN 'over_billed'
             ELSE 'within_tolerance'
-        END as billing_accuracy
-    FROM usage_vs_billing
+        END                                                                         AS billing_accuracy
+    FROM {{ ref('stg_billing_monthly') }} b
+    JOIN invoice_month m USING (billing_month)
+    LEFT JOIN rated_usage u USING (subscriber_key, billing_month)
 ),
-zero_rating_abuse AS (
+
+zero_rated AS (
     SELECT
-        caller_id as customer_id,
-        COUNT(*) as zero_rating_calls,
-        SUM(duration_seconds) as total_zero_rating_duration,
-        SUM(CASE WHEN call_type = 'voice' THEN duration_seconds * 0.05
-                 WHEN call_type = 'data' THEN data_volume_mb * 0.50
-                 ELSE 0 END) as estimated_revenue_loss
+        subscriber_key,
+        count(*)                                                                    AS zero_rated_events,
+        sum(duration_seconds)                                                       AS zero_rated_seconds,
+        sum(CASE WHEN call_type = 'voice' THEN duration_seconds * {{ voice_rate_per_sec }}
+                 WHEN call_type = 'data'  THEN data_volume_mb * {{ data_rate_per_mb }}
+                 ELSE 0 END)                                                        AS zero_rated_loss
     FROM {{ ref('stg_cdr') }}
-    WHERE charging_key = 0 AND start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-    GROUP BY caller_id
-    HAVING COUNT(*) > 10
+    WHERE charging_key = 0
+      AND start_time >= {{ as_of_date() }} - INTERVAL 30 DAY
+    GROUP BY subscriber_key
 ),
-roaming_revenue_gap AS (
+
+roaming_gap AS (
     SELECT
-        customer_id,
-        SUM(settlement_amount) as total_settlement_cost,
-        SUM(settlement_amount * 2.5) as estimated_revenue,
-        SUM(settlement_amount * 1.5) as revenue_gap
+        subscriber_key,
+        sum(settlement_amount)                                                      AS settlement_cost,
+        sum(settlement_amount) * {{ roaming_retail_markup }}                        AS expected_retail,
+        sum(settlement_amount) * ({{ roaming_retail_markup }} - 1)                  AS roaming_margin_at_risk
     FROM {{ ref('stg_roaming_sessions') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-    GROUP BY customer_id
-    HAVING SUM(settlement_amount * 1.5) > 100
+    WHERE start_time >= {{ as_of_date() }} - INTERVAL 30 DAY
+    GROUP BY subscriber_key
 )
 
 SELECT
-    customer_id,
-    billing_month,
-    billed_amount,
-    calculated_total,
-    discrepancy,
-    billing_accuracy,
-    zero_rating_calls,
-    total_zero_rating_duration,
-    estimated_revenue_loss as zero_rating_loss,
-    total_settlement_cost,
-    estimated_revenue,
-    revenue_gap as roaming_revenue_gap,
-    COALESCE(estimated_revenue_loss, 0) + COALESCE(roaming_revenue_gap, 0) + ABS(COALESCE(discrepancy, 0)) as total_estimated_leakage,
-    CURRENT_TIMESTAMP as detection_timestamp
-FROM discrepancies
-LEFT JOIN (
-    SELECT customer_id, zero_rating_calls, total_zero_rating_duration, estimated_revenue_loss
-    FROM zero_rating_abuse
-) zra ON discrepancies.customer_id = zra.customer_id
-LEFT JOIN (
-    SELECT customer_id, total_settlement_cost, estimated_revenue, revenue_gap
-    FROM roaming_revenue_gap
-) rrg ON discrepancies.customer_id = rrg.customer_id
-WHERE billing_accuracy != 'within_tolerance'
-   OR zero_rating_calls IS NOT NULL
-   OR revenue_gap IS NOT NULL
+    d.customer_id,
+    d.subscriber_key,
+    d.billing_month,
+    d.billed_usage,
+    d.rated_usage,
+    d.usage_events,
+    d.observed_days,
+    d.discrepancy,
+    d.billing_accuracy,
+    z.zero_rated_events,
+    z.zero_rated_seconds,
+    z.zero_rated_loss,
+    r.settlement_cost              AS roaming_settlement_cost,
+    r.roaming_margin_at_risk,
+    greatest(-coalesce(d.discrepancy, 0), 0)        -- only under-billing is leakage
+      + coalesce(z.zero_rated_loss, 0)
+      + coalesce(r.roaming_margin_at_risk, 0)       AS total_estimated_leakage,
+    CURRENT_TIMESTAMP              AS detection_timestamp
+FROM discrepancies d
+LEFT JOIN zero_rated z USING (subscriber_key)
+LEFT JOIN roaming_gap r USING (subscriber_key)
+WHERE d.billing_accuracy <> 'within_tolerance'
+   OR z.zero_rated_events IS NOT NULL
+   OR r.settlement_cost IS NOT NULL

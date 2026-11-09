@@ -41,7 +41,8 @@ channel_performance AS (
         SUM(total_revenue) as total_revenue,
         SUM(total_cost) as total_cost,
         SUM(total_revenue) - SUM(total_cost) as net_revenue,
-        AVG((SUM(total_revenue) - SUM(total_cost)) * 1.0 / NULLIF(SUM(total_cost), 0)) as avg_roi
+        -- ROI of the channel as a whole (an AVG over SUMs is not valid SQL, nor meaningful)
+        (SUM(total_revenue) - SUM(total_cost)) * 1.0 / NULLIF(SUM(total_cost), 0) as channel_roi
     FROM campaign_metrics
     GROUP BY channel
 ),
@@ -109,7 +110,7 @@ SELECT
     total_revenue,
     total_cost,
     net_revenue,
-    avg_roi as roi_percentage,
+    channel_roi as roi_percentage,
     NULL as avg_conversion_time,
     channel_avg_open_rate,
     channel_avg_conversion_rate,
@@ -143,7 +144,7 @@ SELECT
     NULL as avg_conversion_time,
     NULL as channel_avg_open_rate,
     NULL as channel_avg_conversion_rate,
-    objective_avg_conversion_rate,
+    avg_conversion_rate as objective_avg_conversion_rate,
     NULL as segment_avg_conversion_rate
 FROM objective_performance
 
@@ -169,5 +170,5 @@ SELECT
     NULL as channel_avg_open_rate,
     NULL as channel_avg_conversion_rate,
     NULL as objective_avg_conversion_rate,
-    segment_avg_conversion_rate
+    avg_conversion_rate as segment_avg_conversion_rate
 FROM segment_performance

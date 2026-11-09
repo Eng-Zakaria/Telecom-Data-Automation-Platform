@@ -16,6 +16,11 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# Plugin sources are materialised into a "silver" schema by parallel threads; creating it
+# up front avoids DuckDB's write-write conflict when two threads race to create it.
+on-run-start:
+  - "CREATE SCHEMA IF NOT EXISTS silver"
+
 models:
   telecom_platform:
     +materialized: view

@@ -16,37 +16,40 @@ WITH call_patterns AS (
         MAX(duration_seconds) as max_duration,
         SUM(CASE WHEN duration_seconds < 10 THEN 1 ELSE 0 END) as very_short_calls,
         SUM(CASE WHEN duration_seconds > 300 THEN 1 ELSE 0 END) as long_calls,
-        COUNT(DISTINCT DATE(start_time)) as active_days,
+        COUNT(DISTINCT CAST(start_time AS DATE)) as active_days,
         COUNT(DISTINCT cell_tower_id) as distinct_towers,
         AVG(signal_strength_dbm) as avg_signal_strength
     FROM {{ ref('stg_cdr') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 30 DAY)
     GROUP BY caller_id, callee_id
     HAVING COUNT(*) > 5
 ),
 roaming_patterns AS (
     SELECT
-        customer_id,
+        subscriber_key,
         COUNT(*) as roaming_frequency,
         AVG(voice_minutes) as avg_roaming_minutes,
         SUM(settlement_amount) as total_roaming_cost,
         COUNT(DISTINCT partner_id) as distinct_partners,
         MAX(start_time) as last_roaming
     FROM {{ ref('stg_roaming_sessions') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-    GROUP BY customer_id
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 30 DAY)
+    GROUP BY subscriber_key
     HAVING COUNT(*) > 3
 ),
 billing_anomalies AS (
+    -- invoice spikes: usage far above the plan's base charge, using the monthly history
     SELECT
-        customer_id,
+        subscriber_key,
+        billing_month,
         total_charge,
-        monthly_charge,
-        usage_charges,
-        (total_charge - monthly_charge) / NULLIF(monthly_charge, 0) as charge_variance,
-        LAG(total_charge, 1) OVER (PARTITION BY customer_id ORDER BY billing_month) as prev_charge,
-        LAG(total_charge, 3) OVER (PARTITION BY customer_id ORDER BY billing_month) as charge_3mo_ago
-    FROM {{ ref('stg_billing') }}
+        base_charge,
+        usage_charge,
+        (total_charge - base_charge) / NULLIF(base_charge, 0) as charge_variance,
+        LAG(total_charge, 1) OVER (PARTITION BY subscriber_key ORDER BY billing_month) as prev_charge,
+        LAG(total_charge, 3) OVER (PARTITION BY subscriber_key ORDER BY billing_month) as charge_3mo_ago
+    FROM {{ ref('stg_billing_monthly') }}
+    QUALIFY billing_month = max(billing_month) OVER ()
 ),
 revenue_leaks AS (
     SELECT
@@ -67,19 +70,19 @@ sim_box_detection AS (
         caller_id,
         COUNT(DISTINCT callee_id) as unique_contacts,
         COUNT(*) as total_calls,
-        COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT DATE(start_time)), 0) as calls_per_day,
+        COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT CAST(start_time AS DATE)), 0) as calls_per_day,
         AVG(duration_seconds) as avg_duration,
         COUNT(DISTINCT cell_tower_id) as towers_used
     FROM {{ ref('stg_cdr') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 7 DAY)
     GROUP BY caller_id
     HAVING COUNT(DISTINCT callee_id) > 20
-       AND COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT DATE(start_time)), 0) > 50
+       AND COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT CAST(start_time AS DATE)), 0) > 50
        AND AVG(duration_seconds) < 30
 )
 
 SELECT
-    customer_id,
+    customer_id AS subscriber_key,  -- every signal below is keyed on the shared subscriber key
     call_frequency,
     avg_duration,
     very_short_calls,
@@ -94,7 +97,7 @@ SELECT
 
     -- Fraud risk score (0-100)
     GREATEST(0, LEAST(100,
-        CASE WHEN very_short_calls > total_calls * 0.8 THEN 40 ELSE 0 END +
+        CASE WHEN very_short_calls > call_frequency * 0.8 THEN 40 ELSE 0 END +
         CASE WHEN distinct_towers > 10 THEN 20 ELSE 0 END +
         CASE WHEN roaming_frequency > 10 THEN 20 ELSE 0 END +
         CASE WHEN charge_variance > 2.0 THEN 20 ELSE 0 END +
@@ -105,7 +108,7 @@ SELECT
     -- Fraud type
     CASE
         WHEN leak_type IS NOT NULL THEN leak_type
-        WHEN very_short_calls > total_calls * 0.8 AND distinct_towers < 3 THEN 'sim_box'
+        WHEN very_short_calls > call_frequency * 0.8 AND distinct_towers < 3 THEN 'sim_box'
         WHEN roaming_frequency > 10 AND total_roaming_cost > 500 THEN 'roaming_fraud'
         WHEN charge_variance > 2.0 THEN 'billing_anomaly'
         WHEN calls_per_day > 100 THEN 'suspected_sim_box'
@@ -115,7 +118,7 @@ SELECT
     -- Severity
     CASE
         WHEN GREATEST(0, LEAST(100,
-            CASE WHEN very_short_calls > total_calls * 0.8 THEN 40 ELSE 0 END +
+            CASE WHEN very_short_calls > call_frequency * 0.8 THEN 40 ELSE 0 END +
             CASE WHEN distinct_towers > 10 THEN 20 ELSE 0 END +
             CASE WHEN roaming_frequency > 10 THEN 20 ELSE 0 END +
             CASE WHEN charge_variance > 2.0 THEN 20 ELSE 0 END +
@@ -123,7 +126,7 @@ SELECT
             CASE WHEN calls_per_day > 100 THEN 20 ELSE 0 END
         )) > 70 THEN 'critical'
         WHEN GREATEST(0, LEAST(100,
-            CASE WHEN very_short_calls > total_calls * 0.8 THEN 40 ELSE 0 END +
+            CASE WHEN very_short_calls > call_frequency * 0.8 THEN 40 ELSE 0 END +
             CASE WHEN distinct_towers > 10 THEN 20 ELSE 0 END +
             CASE WHEN roaming_frequency > 10 THEN 20 ELSE 0 END +
             CASE WHEN charge_variance > 2.0 THEN 20 ELSE 0 END +
@@ -154,7 +157,7 @@ FROM (
     UNION ALL
 
     SELECT
-        customer_id,
+        subscriber_key as customer_id,
         NULL as call_frequency,
         NULL as avg_duration,
         NULL as very_short_calls,
@@ -171,7 +174,7 @@ FROM (
     UNION ALL
 
     SELECT
-        customer_id,
+        subscriber_key as customer_id,
         NULL as call_frequency,
         NULL as avg_duration,
         NULL as very_short_calls,

@@ -10,7 +10,9 @@ WITH customer_metrics AS (
     SELECT
         COUNT(DISTINCT customer_id) as total_customers,
         COUNT(DISTINCT CASE WHEN tenure_days < 90 THEN customer_id END) as new_customers,
-        COUNT(DISTINCT CASE WHEN churn_risk_category = 'high' THEN customer_id END) as high_churn_risk,
+        COUNT(DISTINCT CASE WHEN customer_id IN (
+            SELECT customer_id FROM {{ ref('f_churn_prediction') }} WHERE churn_risk_category = 'high'
+        ) THEN customer_id END) as high_churn_risk,
         COUNT(DISTINCT CASE WHEN payment_health = 'at_risk' THEN customer_id END) as payment_at_risk,
         AVG(lifetime_value) as avg_customer_lifetime_value,
         SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) as payment_health_rate
@@ -18,14 +20,15 @@ WITH customer_metrics AS (
 ),
 financial_metrics AS (
     SELECT
-        SUM(total_revenue) as total_monthly_revenue,
-        AVG(arpu) as avg_arpu,
-        SUM(base_revenue) as base_revenue,
-        SUM(usage_revenue) as usage_revenue,
+        -- measures of the latest closed invoice month (invoices carry charges, not "revenue" columns)
+        SUM(total_charge) as total_monthly_revenue,
+        SUM(total_charge) / NULLIF(COUNT(DISTINCT customer_id), 0) as avg_arpu,
+        SUM(base_charge) as base_revenue,
+        SUM(usage_charge) as usage_revenue,
         COUNT(DISTINCT customer_id) as paying_customers,
         AVG(total_charge) as avg_bill
     FROM {{ ref('stg_billing_monthly') }}
-    WHERE billing_month = DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m')
+    WHERE billing_month = (SELECT max(billing_month) FROM {{ ref('stg_billing_monthly') }})
 ),
 network_metrics AS (
     SELECT
@@ -47,7 +50,7 @@ fraud_metrics AS (
         SUM(CASE WHEN fraud_type = 'roaming_fraud' THEN 1 ELSE 0 END) as roaming_fraud_cases,
         SUM(CASE WHEN fraud_type = 'billing_anomaly' THEN 1 ELSE 0 END) as billing_anomalies
     FROM {{ ref('f_fraud_detection') }}
-    WHERE detection_timestamp >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY)
+    WHERE detection_timestamp >= (CURRENT_TIMESTAMP - INTERVAL 30 DAY)
 ),
 complaint_metrics AS (
     SELECT
@@ -57,14 +60,15 @@ complaint_metrics AS (
         AVG(CASE WHEN resolved THEN resolution_time_days END) as avg_resolution_time,
         SUM(CASE WHEN complaint_priority = 'urgent' THEN 1 ELSE 0 END) as urgent_complaints
     FROM {{ ref('stg_complaints') }}
-    WHERE posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+    WHERE posted_date >= ({{ as_of_date() }} - INTERVAL 30 DAY)
 ),
 revenue_assurance AS (
     SELECT
         COUNT(*) as leakage_cases,
-        SUM(COALESCE(estimated_revenue_loss, 0) + COALESCE(roaming_revenue_gap, 0) + ABS(COALESCE(discrepancy, 0))) as estimated_revenue_at_risk
+        -- f_revenue_leakage already nets its three signals into one leakage figure
+        SUM(total_estimated_leakage) as estimated_revenue_at_risk
     FROM {{ ref('f_revenue_leakage') }}
-    WHERE detection_timestamp >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY)
+    WHERE total_estimated_leakage > 0
 )
 
 SELECT

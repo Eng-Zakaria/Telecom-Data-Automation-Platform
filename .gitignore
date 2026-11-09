@@ -61,3 +61,9 @@ build/
 telecom-platform-claude-code-prompt.md
 # Run outputs (lineage events, run summaries)
 artifacts/
+
+# dbt build outputs
+transform/dbt/target/
+transform/dbt/logs/
+transform/dbt/dbt_packages/
+transform/dbt/.user.yml

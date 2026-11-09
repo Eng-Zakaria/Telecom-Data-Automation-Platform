@@ -1,7 +1,7 @@
 # Telecom lakehouse - common tasks (see README for the full story)
 LAB ?= ../azure-local-lab
 
-.PHONY: lab up down run run-stream test it lint tf-validate checkov dashboard lineage
+.PHONY: lab up down run run-stream full dbt test it lint tf-validate checkov dashboard lineage
 
 lab:            ## start shared Azure emulators (Azurite, Event Hubs, Grafana)
 	cd $(LAB) && ./scripts/init-env.sh && docker compose --profile streaming up -d
@@ -17,6 +17,12 @@ run:            ## batch run with 2% injected corruption
 
 run-stream:     ## CDRs through Event Hubs, lineage to Marquez
 	OPENLINEAGE_URL=http://localhost:5000 uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream
+
+full:           ## everything: stream, contracts, dbt build + tests, gold publish, lineage
+	OPENLINEAGE_URL=http://localhost:5000 uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream --dbt
+
+dbt:            ## dbt build against the last run's silver tables (set LAKE_PREFIX if you used --prefix)
+	cd transform/dbt && uv run --project ../.. dbt build --profiles-dir .
 
 test:           ## unit tests (no containers)
 	uv run pytest

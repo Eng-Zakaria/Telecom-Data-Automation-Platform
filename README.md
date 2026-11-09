@@ -4,21 +4,21 @@
 
 ![terraform](https://img.shields.io/badge/terraform-azurerm%204%20%2B%20fabric-7B42BC?logo=terraform&logoColor=white)
 ![checkov](https://img.shields.io/badge/checkov-24%20passed%20%2F%200%20failed-brightgreen)
-![tests](https://img.shields.io/badge/tests-99%20unit%20%2B%204%20integration-brightgreen)
+![tests](https://img.shields.io/badge/tests-102%20unit%20%2B%205%20integration%20%2B%2068%20dbt-brightgreen)
 ![lineage](https://img.shields.io/badge/lineage-OpenLineage-1f6feb)
 ![telemetry](https://img.shields.io/badge/telemetry-OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
 
-Call detail records (CDRs), radio KPIs and billing data flow from **bronze → silver → gold** as Delta Lake tables.
+Twelve telecom feeds (CDRs, radio KPIs, billing, invoices, complaints in Arabic and English, roaming, campaigns, plus the tower and plan registries) flow from **bronze → silver → gold** as Delta Lake tables. A **dbt project of 31 models and 68 tests** then builds the customer 360, revenue assurance, churn, network and marketing marts on top.
 - **Every silver table has a data contract.** Rows that fail it go to a quarantine zone, and the reason for each rejection is recorded on the row.
-- **A failed quality gate blocks the gold layer.** Nothing reaches gold until the gates pass.
+- **A failed quality gate blocks the gold layer.** Nothing reaches gold until the contracts **and** the dbt tests pass.
 - **Every job is traced and lineage-tracked.** Traces and metrics go to OpenTelemetry; lineage goes to OpenLineage. Locally you see them in Grafana and Marquez. In Azure they go to App Insights and to any OpenLineage backend, such as Purview.
 
 ```mermaid
 flowchart LR
   subgraph sources[Sources]
     g1[CDR generator] --> eh[(Event Hubs<br/>cdr-stream)]
-    g2[Radio KPI generator]
-    g3[Billing generator]
+    g2[KPIs · towers · plans]
+    g3[billing · invoices · complaints<br/>roaming · campaigns]
   end
   eh --> b[(bronze<br/>append-only Delta)]
   g2 --> b
@@ -26,7 +26,8 @@ flowchart LR
   b --> c{{data contracts<br/>standardise · validate · dedupe}}
   c -- valid --> s[(silver<br/>MERGE on business key)]
   c -- rejected --> q[(quarantine<br/>+ failing rule names)]
-  s -- gates passed --> gold[(gold<br/>DuckDB SQL marts)]
+  s -- gates passed --> dbt[[dbt-duckdb<br/>31 models · 68 tests]]
+  dbt -- tests passed --> gold[(gold<br/>21 published marts)]
   c -. OTel traces + metrics .-> o[Grafana / App Insights]
   c -. OpenLineage .-> l[Marquez / Purview]
 ```
@@ -48,25 +49,27 @@ The local stand-ins come from [azure-local-lab](../azure-local-lab). Every proje
 ```bash
 (cd ../azure-local-lab && ./scripts/init-env.sh && docker compose --profile streaming up -d)
 docker compose up -d                       # Marquez lineage server (UI on :3002)
-uv sync
-uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream
+uv sync --extra dbt
+uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream --dbt
 ```
 
 `--chaos 0.02` corrupts 2% of rows the way real feeds break: negative durations from clock skew, truncated records, sensor default values and replayed duplicates. That proves the contracts catch them. A real run:
 
 ```
-batch 20261108T211024-b12b6d  mode=local  35.5s
-table               in   valid  quarant.  dupes  gates
-cdr               3060    2940        60     60  min_rows=ok max_quarantine_rate=ok key_unique=ok
-network_kpi        979     941        19     19  min_rows=ok max_quarantine_rate=ok key_unique=ok
-billing            510     490        10     10  min_rows=ok max_quarantine_rate=ok key_unique=ok
-gold.network_health_hourly              941 rows
-gold.subscriber_usage_daily             955 rows
-gold.revenue_by_plan                      8 rows
+batch 20261109T090820-70e78f  mode=local  83.9s
+table                  in   valid  quarant.  dupes
+towers                 21      20         0      1
+cdr                  5100    4900       102     98
+network_kpi          1468    1412        29     27
+billing               510     490        10     10
+billing_monthly      3060    3000         0     60
+...                                               (12 feeds, all gates ok)
+dbt build: 31 models, 68 tests  ok  (1 warning: assert_every_cdr_subscriber_has_an_account)
+gold (dbt marts): 21 tables, 3913 rows
 RESULT: PASS
 ```
 
-All 60 corrupted CDRs were quarantined and all 60 replayed duplicates were removed. Re-running the same batch is idempotent, because silver uses `MERGE` on the business key. At `--chaos 0.2` the quarantine-rate gate fails, gold is not published, and the process exits 1.
+Every corrupted CDR (102) was quarantined and every replayed duplicate removed. The 10 quarantined billing accounts leave a few CDR subscribers without an account. dbt reports that as a **warning that lists the exact keys**. It fails the build only when more than 5% of usage is orphaned, the threshold that indicates a broken join rather than routine quarantine. Re-running the same batch is idempotent, because silver uses `MERGE` on the business key. At `--chaos 0.2` the quarantine-rate gate fails, gold is not published, and the process exits 1.
 
 | Pipeline health (Grafana): `uv run python scripts/grafana_import.py` | Column-level lineage (Marquez) |
 |---|---|
@@ -79,6 +82,8 @@ All 60 corrupted CDRs were quarantined and all 60 replayed duplicates were remov
 | [`lakehouse/`](lakehouse) | The runnable pipeline: storage per mode, data contracts, jobs, Event Hubs streaming, telemetry and lineage |
 | [`lakehouse/quality.py`](lakehouse/quality.py) | Data contracts: row rules, synonym standardisation (`LTE → 4G`), business-key dedupe, publish gates |
 | [`lakehouse/observe.py`](lakehouse/observe.py) | One `with observe.job(...)` context gives a span, row and quarantine counters, a duration histogram, and OpenLineage START/COMPLETE/FAIL events with schema, data-quality and row-count facets |
+| [`transform/dbt/`](transform/dbt) | 31 models (staging → core → 8 domain marts) on **dbt-duckdb**, reading the silver Delta tables through [`lakehouse/dbt_plugin.py`](lakehouse/dbt_plugin.py), so dbt and the pipeline resolve paths and auth identically. 68 tests: keys, relationships, accepted values, and singular tests for cross-feed invariants (identity joins, billing/usage period overlap, no fan-out) |
+| [`lakehouse/transform.py`](lakehouse/transform.py) | Runs `dbt build`, treats failed tests as a gate, publishes marts to gold Delta, and emits OpenLineage per model from dbt's manifest |
 | [`infra/`](infra) | Terraform: one `platform` composition and four thin environment roots (dev / staging / prod / ephemeral) |
 | [`.github/workflows/`](.github/workflows) | `ci` (unit tests, then emulator integration and a lineage check) · `infra` (fmt, validate, tflint, checkov, plan comment, optional infracost) · `ephemeral` (preview env per PR plus a nightly TTL janitor) · `promote` (staging → prod with a reviewed plan and a smoke run) |
 | [`observability/grafana/`](observability/grafana) | Pipeline-health dashboard as code |
@@ -123,6 +128,12 @@ This repository began as a generated scaffold. Getting it to run end to end surf
 | Data | Billing marked accounts `overdue` but always set `num_overdue_months = 0` | Generator fixed; gold uses the authoritative status |
 | Telemetry | The metric attribute `job` was silently overwritten by Prometheus's `job` label; default histogram buckets were too coarse for sub-second jobs | `pipeline_job` attribute; explicit buckets |
 | Tests | One test generated 4.3M KPI rows (more than 15 minutes) and wrote parquet into the repo | Right-sized in-memory fixtures; that file now runs in about 20 seconds and the full suite in about 4 minutes |
+| dbt | Could never compile: no `sources.yml`, six referenced models never defined, MySQL functions (`DATE_SUB`, `DATE_FORMAT`) under a Postgres profile | dbt-duckdb over the lake; missing models written from the real feeds; dialect converted with a balanced-parenthesis rewriter |
+| dbt | **Customer 360 joined nothing**: billing `CUST_000001` ids were joined to hashed CDR/complaint ids, so every usage metric was NULL; same in revenue leakage and fraud | One pseudonymous `subscriber_key` (sha256[:16]) across all feeds; a singular test fails if under 90% of subscribers carry usage |
+| dbt | `dim_towers` and `dim_plans` read columns that exist in no feed; `dim_towers` selected from itself | Tower and plan registries landed as feeds |
+| dbt | Marts filtered on `CURRENT_DATE` (empty on any non-live data); invoices dated relative to *today* while usage was 2024, so leakage compared nothing; invoice months repeated a label every 31-day month | `as_of_date()` from the data; generators anchored to the usage window; calendar-month arithmetic |
+| dbt | Mixed grains (customer and plan rows UNIONed in one table), nested aggregates, aliases used before definition, the churn score copy-pasted three times | Rewritten as single-grain, single-definition models |
+| Streaming | The consumer replayed the hub from the start on every run, so each run got slower; a CI-size run timed out | Consumer seeks to the batch's publish time |
 
 ## Status and roadmap
 
@@ -130,7 +141,8 @@ This repository began as a generated scaffold. Getting it to run end to end surf
 - [x] OpenTelemetry metrics and traces, Grafana dashboard as code, KQL alert on gate failures
 - [x] OpenLineage to Marquez, plus a CI check that every gold table traces back to a source
 - [x] Terraform validated against real providers; checkov clean; four workflows
-- [ ] **dbt project** (`transform/dbt`): 25 models reference six models that are never defined and use MySQL functions against a Postgres profile. Next step: port the core layer to `dbt-duckdb` over the silver Delta tables
+- [x] dbt project: 31 models and 68 tests build on dbt-duckdb over the lake, gate the run and publish 21 marts to gold, with per-model lineage
+- [ ] Port the dbt project to `dbt-fabric` / `dbt-databricks` for the cloud engine (same models; dialect macros where DuckDB functions differ)
 - [ ] First real `terraform apply` of `dev` on a free-credit subscription, with screenshots, then destroy
 - [ ] Wire the `ml/` models to gold features (`subscriber_usage_daily`) instead of their own synthetic frames
 - [ ] Fold the legacy `pipelines/` (PySpark) and `monitoring/` (in-memory) modules into `lakehouse/` or retire them

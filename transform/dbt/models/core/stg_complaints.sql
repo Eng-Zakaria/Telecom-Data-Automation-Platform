@@ -21,6 +21,7 @@ SELECT
     resolution_time_days,
     upvotes,
     customer_id_hash,
+    customer_id_hash AS subscriber_key,
     CASE
         WHEN sentiment = 'negative' AND severity IN ('high', 'critical') THEN 'urgent'
         WHEN sentiment = 'negative' AND severity = 'medium' THEN 'attention'
@@ -40,5 +41,5 @@ SELECT
         ELSE 'english'
     END as language_full,
     CURRENT_TIMESTAMP as staging_ingestion_timestamp
-FROM {{ source('bronze', 'complaints_raw') }}
+FROM {{ source('silver', 'complaints') }}
 WHERE complaint_id IS NOT NULL

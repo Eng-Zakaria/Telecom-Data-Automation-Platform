@@ -9,14 +9,14 @@
 WITH historical_usage AS (
     SELECT
         tower_id,
-        DATE(timestamp) as date,
+        CAST(timestamp AS DATE) as date,
         AVG(active_users) as avg_active_users,
         AVG(congestion_pct) as avg_congestion,
         SUM(total_calls) as total_calls,
         AVG(downlink_throughput_mbps) as avg_throughput
     FROM {{ ref('stg_network_kpi') }}
-    WHERE timestamp >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
-    GROUP BY tower_id, DATE(timestamp)
+    WHERE timestamp >= ({{ as_of_date() }} - INTERVAL 90 DAY)
+    GROUP BY tower_id, CAST(timestamp AS DATE)
 ),
 tower_trends AS (
     SELECT

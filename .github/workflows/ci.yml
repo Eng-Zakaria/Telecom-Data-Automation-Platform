@@ -24,7 +24,10 @@ jobs:
       - uses: actions/checkout@v4
         with: { repository: "${{ env.LAB_REPO }}", path: azure-local-lab }
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync
+      - run: uv sync --extra dbt
+      - name: dbt project parses (refs, sources, tests resolve)
+        working-directory: telecom/transform/dbt
+        run: uv run --project ../.. dbt parse --profiles-dir .
       - name: ruff (new code is held to the bar; legacy modules are tracked in BACKLOG)
         run: uv run ruff check lakehouse scripts tests/test_lakehouse_quality.py tests/test_lakehouse_integration.py
       - run: uv run pytest --cov=lakehouse --cov=ingestion --cov-report=term-missing:skip-covered
@@ -52,14 +55,14 @@ jobs:
           docker compose up -d
           timeout 180 bash -c 'until curl -sf localhost:5000/api/v1/namespaces; do sleep 4; done'
       - working-directory: telecom
-        run: uv sync
+        run: uv sync --extra dbt
       - name: integration tests
         working-directory: telecom
         run: uv run pytest -m integration -v
-      - name: full run, streamed, lineage to Marquez
+      - name: full run - streamed, contracts, dbt build + tests, gold publish, lineage to Marquez
         working-directory: telecom
         env: { OPENLINEAGE_URL: "http://localhost:5000" }
-        run: uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream --prefix ci/${{ github.run_id }}
+        run: uv run python -m lakehouse --cdr 5000 --chaos 0.02 --stream --dbt --prefix ci/${{ github.run_id }}
       - name: lineage graph is complete
         working-directory: telecom
         run: uv run python scripts/check_lineage.py --marquez http://localhost:5000

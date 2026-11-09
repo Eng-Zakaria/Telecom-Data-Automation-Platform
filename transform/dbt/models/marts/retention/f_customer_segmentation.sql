@@ -86,7 +86,7 @@ SELECT
     CASE
         WHEN nm.data_consumption > 70 THEN 'data_heavy'
         WHEN nm.usage_intensity > 70 AND nm.data_consumption < 30 THEN 'voice_heavy'
-        WHEN nm.roaming_sessions > 10 THEN 'roaming_heavy'
+        WHEN cm.roaming_sessions > 10 THEN 'roaming_heavy'
         ELSE 'balanced'
     END as secondary_segment,
 

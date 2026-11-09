@@ -51,7 +51,7 @@ WITH ticket_metrics AS (
         END as fcr_probability
 
     FROM {{ ref('stg_complaints') }}
-    WHERE posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
+    WHERE posted_date >= ({{ as_of_date() }} - INTERVAL 90 DAY)
 ),
 queue_performance AS (
     SELECT

@@ -206,7 +206,8 @@ class BillingGenerator:
     def generate_usage_charges(
         self,
         num_months: int = 12,
-        num_customers: int = 10000
+        num_customers: int = 10000,
+        end_month: Optional[datetime] = None,
     ) -> pd.DataFrame:
         """
         Generate monthly usage charges for analysis.
@@ -214,12 +215,20 @@ class BillingGenerator:
         Args:
             num_months: Number of months to generate
             num_customers: Number of customers to simulate
+            end_month: Latest invoice month (defaults to the current month). Pass the
+                usage window's month so invoices and CDRs describe the same period.
 
         Returns:
             DataFrame with monthly usage charges
         """
         records = []
         sample_customers = self.rng.choice(self.customers, size=num_customers, replace=False)
+        end = (end_month or datetime.now()).replace(day=1)
+        # Calendar months, not 30-day steps (which can repeat a label across a 31-day month)
+        months = [
+            f"{(end.year * 12 + end.month - 1 - k) // 12:04d}-{(end.month - 1 - k) % 12 + 1:02d}"
+            for k in range(num_months)
+        ]
 
         for customer in sample_customers:
             for month in range(num_months):
@@ -236,7 +245,7 @@ class BillingGenerator:
                     'customer_id': customer.customer_id,
                     'hashed_id': customer.hashed_id,
                     'plan_id': customer.plan_id,
-                    'billing_month': (datetime.now() - timedelta(days=30 * month)).strftime('%Y-%m'),
+                    'billing_month': months[month],
                     'base_charge': base_charge,
                     'usage_charge': usage_charge,
                     'total_charge': round(base_charge + usage_charge, 2),

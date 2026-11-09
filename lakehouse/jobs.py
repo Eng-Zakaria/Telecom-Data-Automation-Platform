@@ -29,6 +29,8 @@ def _to_arrow(df: pd.DataFrame) -> pa.Table:
     # Delta has no nanosecond timestamps; normalise to microseconds UTC-naive.
     out = df.copy()
     for col in out.columns:
+        if isinstance(out[col].dtype, pd.DatetimeTZDtype):  # e.g. dbt CURRENT_TIMESTAMP columns
+            out[col] = out[col].dt.tz_convert("UTC").dt.tz_localize(None)
         if pd.api.types.is_datetime64_any_dtype(out[col]):
             out[col] = out[col].astype("datetime64[us]")
     return pa.Table.from_pandas(out, preserve_index=False)

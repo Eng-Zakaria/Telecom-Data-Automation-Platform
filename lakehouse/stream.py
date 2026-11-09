@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 from cloudkit import eventhub_consumer, eventhub_producer
@@ -21,10 +22,12 @@ HUB = "cdr-stream"
 CONSUMER_GROUP = "bronze-writer"
 
 
-def publish(df: pd.DataFrame, batch_id: str, hub: str = HUB) -> int:
+def publish(df: pd.DataFrame, batch_id: str, hub: str = HUB) -> datetime:
+    """Send every row as an event; returns the time to start consuming this batch from."""
     from azure.eventhub import EventData
 
     sent = 0
+    publish_started = datetime.now(UTC) - timedelta(seconds=5)  # small clock-skew margin
     with (
         observe.job("stream.publish", hub=hub, batch_id=batch_id) as run,
         eventhub_producer(hub) as producer,
@@ -43,10 +46,16 @@ def publish(df: pd.DataFrame, batch_id: str, hub: str = HUB) -> int:
             producer.send_batch(batch)
         run.read(observe.Dataset("generator://cdr", "cdr", df))
         run.wrote(observe.Dataset(f"eventhubs://{hub}", hub, df))
-    return sent
+    return publish_started
 
 
-def consume(batch_id: str, expected: int, timeout_s: float = 60, hub: str = HUB) -> pd.DataFrame:
+def consume(
+    batch_id: str,
+    expected: int,
+    timeout_s: float | None = None,
+    hub: str = HUB,
+    since: datetime | None = None,
+) -> pd.DataFrame:
     """Read this batch's events from the hub (all partitions) until `expected` arrive."""
     rows: list[dict] = []
     done = threading.Event()
@@ -65,12 +74,15 @@ def consume(batch_id: str, expected: int, timeout_s: float = 60, hub: str = HUB)
             target=client.receive_batch,
             kwargs={
                 "on_event_batch": on_event_batch,
-                "starting_position": "-1",
+                # Start at this batch's publish time, not the beginning of retention:
+                # replaying every earlier run makes each run slower than the last.
+                "starting_position": since if since is not None else "-1",
                 "max_batch_size": 500,
             },
             daemon=True,
         )
         worker.start()
+        timeout_s = timeout_s if timeout_s is not None else 60 + expected / 100
         deadline = time.monotonic() + timeout_s
         while not done.is_set() and time.monotonic() < deadline:
             done.wait(0.5)

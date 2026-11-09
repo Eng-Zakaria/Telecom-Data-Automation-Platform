@@ -9,6 +9,7 @@
 SELECT
     call_sid,
     caller_id,
+    caller_id AS subscriber_key,
     callee_id,
     start_time,
     duration_seconds,
@@ -24,7 +25,7 @@ SELECT
     geographic_lon,
     network_type,
     signal_strength_dbm,
-    DATE(start_time) as call_date,
+    CAST(start_time AS DATE) as call_date,
     HOUR(start_time) as call_hour,
     DAYOFWEEK(start_time) as call_day_of_week,
     CASE
@@ -48,5 +49,5 @@ SELECT
         ELSE 'other'
     END as network_category,
     CURRENT_TIMESTAMP as staging_ingestion_timestamp
-FROM {{ source('bronze', 'cdr_raw') }}
+FROM {{ source('silver', 'cdr') }}
 WHERE call_sid IS NOT NULL

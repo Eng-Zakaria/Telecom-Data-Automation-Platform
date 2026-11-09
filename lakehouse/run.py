@@ -21,15 +21,31 @@ from opentelemetry import trace
 from . import jobs, observe, stream
 from .storage import Lake
 
-SILVER_TABLES = ("cdr", "network_kpi", "billing")
+SILVER_TABLES = (
+    "towers",
+    "cdr",
+    "network_kpi",
+    "billing",
+    "billing_monthly",
+    "plans",
+    "complaints",
+    "roaming_sessions",
+    "roaming_partners",
+    "roaming_settlements",
+    "campaigns",
+    "campaign_responses",
+)
 
 
 def generate(
     cdr_rows: int, customers: int, towers: int, days: int, seed: int
 ) -> dict[str, pd.DataFrame]:
     from ingestion.billing_generator import BillingGenerator
+    from ingestion.campaign_generator.campaign_generator import CampaignGenerator
     from ingestion.cdr_generator import CDRGenerator
+    from ingestion.complaint_scraper.scraper import ComplaintScraper
     from ingestion.network_kpi_generator import NetworkKPIGenerator
+    from ingestion.roaming_partner_generator.roaming_generator import RoamingGenerator
 
     g = CDRGenerator(num_customers=customers, num_towers=towers, date_range_days=days, seed=seed)
     g.generate_customers()
@@ -41,8 +57,44 @@ def generate(
         seed=seed,
         tower_ids=[t.tower_id for t in g.towers],  # one tower registry for every feed
     ).generate_kpi_data()
-    billing = BillingGenerator(num_customers=customers, seed=seed).generate_billing_data()
-    return {"cdr": cdr, "network_kpi": kpi, "billing": billing}
+    bg = BillingGenerator(num_customers=customers, seed=seed)
+    billing = bg.generate_billing_data()
+    # invoices end in the month the CDR window starts, so usage and billing overlap
+    billing_monthly = bg.generate_usage_charges(
+        num_months=6, num_customers=customers, end_month=cdr["start_time"].min().to_pydatetime()
+    )
+    plans = pd.DataFrame([p.__dict__ for p in bg.plans]).assign(
+        features=lambda d: d["features"].map(",".join)  # Delta-friendly scalar column
+    )
+
+    # Every generator hashes CUST_nnnnnn with sha256[:16], so all feeds share one
+    # pseudonymous subscriber key. Sizes stay within the same customer universe.
+    complaints = ComplaintScraper(
+        num_complaints=max(1, customers // 2),
+        seed=seed,
+        end_date=cdr["start_time"].max().to_pydatetime(),  # same period as the usage
+        window_days=180,
+    ).generate_complaints()
+    sessions, settlements, partners = RoamingGenerator(
+        num_customers=customers, num_partners=12, date_range_days=days, seed=seed
+    ).generate_roaming_data(num_sessions=max(50, cdr_rows // 6))
+    campaigns, responses = CampaignGenerator(
+        num_customers=customers, num_campaigns=8, seed=seed
+    ).generate_campaign_data()
+    return {
+        "towers": pd.DataFrame([tw.__dict__ for tw in g.towers]),
+        "cdr": cdr,
+        "network_kpi": kpi,
+        "billing": billing,
+        "billing_monthly": billing_monthly,
+        "plans": plans,
+        "complaints": complaints,
+        "roaming_sessions": sessions,
+        "roaming_partners": partners,
+        "roaming_settlements": settlements,
+        "campaigns": campaigns,
+        "campaign_responses": responses,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -54,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--chaos", type=float, default=0.0, help="fraction of rows to corrupt (0-1)")
     p.add_argument("--stream", action="store_true", help="route CDRs through Event Hubs")
+    p.add_argument("--dbt", action="store_true", help="build + test the dbt marts, publish to gold")
     p.add_argument("--prefix", default=None, help="lake path prefix that isolates this run")
     p.add_argument("--summary", default="artifacts/run_summary.json")
     args = p.parse_args(argv)
@@ -73,14 +126,31 @@ def main(argv: list[str] | None = None) -> int:
             df = jobs.inject_chaos(df, table, args.chaos, seed=args.seed)
             source = table
             if table == "cdr" and args.stream:
-                stream.publish(df, batch_id)
-                df = stream.consume(batch_id, expected=len(df))
+                since = stream.publish(df, batch_id)
+                df = stream.consume(batch_id, expected=len(df), since=since)
                 source = f"eventhubs:{stream.HUB}"
             jobs.ingest_bronze(lake, table, df, batch_id, source)
 
         silver = {t: jobs.build_silver(lake, t, batch_id) for t in SILVER_TABLES}
         gates_ok = all(r.report.passed for r in silver.values())
         gold = {name: jobs.build_gold(lake, name) for name in jobs.GOLD_SQL} if gates_ok else {}
+
+        dbt_summary = None
+        if args.dbt and gates_ok:
+            from . import transform
+
+            result = transform.run_dbt(lake)
+            if result.success:
+                result.published = transform.publish_marts(lake)
+            gates_ok = result.success  # a failed dbt test blocks publishing like a contract
+            dbt_summary = {
+                "success": result.success,
+                "models": result.models,
+                "tests": result.tests,
+                "failures": result.failures,
+                "warnings": result.warnings,
+                "published": result.published,
+            }
         root.set_attribute("lakehouse.gates_passed", gates_ok)
 
     summary = {
@@ -100,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
             for t, r in silver.items()
         },
         "gold": {name: len(df) for name, df in gold.items()},
+        "dbt": dbt_summary,
         "gates_passed": gates_ok,
     }
     observe.stop()
@@ -121,6 +192,16 @@ def _print(s: dict) -> None:
         )
     for name, n in s["gold"].items():
         print(f"gold.{name:<30}{n:>8} rows")
+    if s.get("dbt"):
+        d = s["dbt"]
+        status = "ok" if d["success"] else f"FAIL {d['failures']}"
+        if d.get("warnings"):
+            status += f"  ({len(d['warnings'])} warning: {', '.join(w.split('.')[-1] for w in d['warnings'])})"
+        print(f"dbt build: {d['models']} models, {d['tests']} tests  {status}")
+        if d["published"]:
+            print(
+                f"gold (dbt marts): {len(d['published'])} tables, {sum(d['published'].values())} rows"
+            )
     print("RESULT:", "PASS" if s["gates_passed"] else "FAIL (gold not published)")
 
 

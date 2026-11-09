@@ -1,32 +1,16 @@
+# One engine for every environment: DuckDB in-process, reading Delta tables from the lake
+# through lakehouse.dbt_plugin. CLOUDKIT_MODE=local -> Azurite, CLOUDKIT_MODE=azure -> ADLS Gen2.
+# At production scale the same models move to dbt-databricks / dbt-fabric (see ADR-006).
 telecom_platform:
-  target: dev
+  target: lake
   outputs:
-    dev:
-      type: postgres
-      host: localhost
-      port: 5432
-      user: postgres
-      password: postgres
-      dbname: telecom
-      schema: gold
-      threads: 4
-
-    staging:
-      type: postgres
-      host: {{ env_var('DB_HOST') }}
-      port: 5432
-      user: {{ env_var('DB_USER') }}
-      password: {{ env_var('DB_PASSWORD') }}
-      dbname: telecom_staging
-      schema: gold
-      threads: 4
-
-    prod:
-      type: postgres
-      host: {{ env_var('DB_HOST') }}
-      port: 5432
-      user: {{ env_var('DB_USER') }}
-      password: {{ env_var('DB_PASSWORD') }}
-      dbname: telecom_prod
-      schema: gold
-      threads: 8
+    lake:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'target/telecom.duckdb') }}"
+      # 1 thread: plugin sources load lazily on first reference, and parallel threads would
+      # race to create the same DuckDB table ("Catalog write-write conflict"). DuckDB still
+      # parallelises each query internally, so nothing is lost at this scale.
+      threads: 1
+      plugins:
+        - module: lakehouse.dbt_plugin
+          alias: lake

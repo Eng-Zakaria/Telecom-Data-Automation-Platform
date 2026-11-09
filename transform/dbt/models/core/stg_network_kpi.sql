@@ -20,7 +20,7 @@ SELECT
     handover_success_rate_pct,
     active_users,
     total_calls,
-    DATE(timestamp) as kpi_date,
+    CAST(timestamp AS DATE) as kpi_date,
     HOUR(timestamp) as kpi_hour,
     DAYOFWEEK(timestamp) as kpi_day_of_week,
     CASE
@@ -41,5 +41,5 @@ SELECT
         ELSE 'normal_drop'
     END as drop_rate_category,
     CURRENT_TIMESTAMP as staging_ingestion_timestamp
-FROM {{ source('bronze', 'network_kpi_raw') }}
+FROM {{ source('silver', 'network_kpi') }}
 WHERE tower_id IS NOT NULL

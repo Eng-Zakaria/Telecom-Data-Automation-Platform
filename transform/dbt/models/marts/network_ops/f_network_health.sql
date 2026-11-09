@@ -8,20 +8,23 @@
 
 WITH tower_health AS (
     SELECT
-        tower_id,
-        tower_type,
-        region,
-        tower_health_status,
-        tower_stability,
-        maintenance_priority,
-        overall_rsrp,
-        overall_congestion,
-        overall_dropped_call_rate,
-        overall_latency,
-        overall_handover_success,
-        congestion_volatility,
-        drop_rate_volatility
-    FROM {{ ref('f_network_kpis') }}
+        k.tower_id,
+        d.tower_type,
+        d.region,
+        d.city,
+        k.tower_health_status,
+        k.tower_stability,
+        k.maintenance_priority,
+        k.overall_rsrp,
+        k.overall_congestion,
+        k.overall_dropped_call_rate,
+        k.overall_latency,
+        k.overall_handover_success,
+        k.congestion_volatility,
+        k.drop_rate_volatility
+    FROM {{ ref('f_network_kpis') }} k
+    -- tower attributes live in the registry, not in the KPI fact
+    LEFT JOIN {{ ref('dim_towers') }} d USING (tower_id)
 ),
 regional_summary AS (
     SELECT
@@ -57,13 +60,13 @@ city_performance AS (
 trend_analysis AS (
     SELECT
         tower_id,
-        DATE(timestamp) as date,
+        CAST(timestamp AS DATE) as date,
         AVG(congestion_pct) as daily_congestion,
         AVG(dropped_call_rate_pct) as daily_drop_rate,
         AVG(rsrp_dbm) as daily_rsrp
     FROM {{ ref('stg_network_kpi') }}
-    WHERE timestamp >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-    GROUP BY tower_id, DATE(timestamp)
+    WHERE timestamp >= ({{ as_of_date() }} - INTERVAL 30 DAY)
+    GROUP BY tower_id, CAST(timestamp AS DATE)
 ),
 tower_trends AS (
     SELECT

@@ -94,3 +94,22 @@ def test_streaming_path_matches_batch(tmp_path, prefix):
         e for e in events if e["eventType"] == "COMPLETE" and e["job"]["name"] == "bronze.cdr"
     )
     assert bronze["inputs"][0]["namespace"] == "eventhubs://cdr-stream"
+
+
+def test_dbt_marts_build_test_and_publish(tmp_path, prefix):
+    """silver -> dbt build (models + tests) -> gold marts, with lineage through every model."""
+    code, s, events = _run(tmp_path, prefix, "--dbt")
+    assert code == 0, s.get("dbt")
+    d = s["dbt"]
+    assert d["success"] and d["models"] >= 30 and d["tests"] >= 60 and not d["failures"]
+    for mart in ("f_customers", "f_revenue_leakage", "f_churn_prediction", "f_executive_dashboard"):
+        assert d["published"].get(mart, 0) > 0, mart
+
+    lake = Lake.from_env(prefix=prefix)
+    customers = jobs.read(lake, "gold", "f_customers")
+    assert customers.subscriber_key.is_unique
+    assert customers.total_calls.notna().mean() > 0.9  # cross-feed join really matches
+
+    done = {e["job"]["name"]: e for e in events if e["eventType"] == "COMPLETE"}
+    assert {i["name"] for i in done["dbt.stg_cdr"]["inputs"]} == {"silver/cdr"}
+    assert "stg_billing" in {i["name"] for i in done["dbt.f_customers"]["inputs"]}

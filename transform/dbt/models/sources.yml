@@ -1,0 +1,60 @@
+version: 2
+
+# Silver tables are published by the Python pipeline only after their data contracts pass
+# (lakehouse/quality.py), so dbt starts from typed, deduplicated, validated data.
+sources:
+  - name: silver
+    description: Contract-validated silver Delta tables in the lake (Azurite locally, ADLS in Azure)
+    meta: { plugin: lake, layer: silver }
+    freshness:
+      warn_after: { count: 26, period: hour }
+    loaded_at_field: _ingested_at
+    tables:
+      - name: towers
+        description: Cell tower registry shared by CDR and radio KPI feeds
+        columns:
+          - name: tower_id
+            data_tests: [unique, not_null]
+      - name: cdr
+        description: Call detail records, one row per call/SMS/data session
+        columns:
+          - name: call_sid
+            data_tests: [unique, not_null]
+          - name: caller_id
+            description: sha256(CUST_nnnnnn)[:16], the pseudonymous subscriber key
+            data_tests: [not_null]
+      - name: network_kpi
+        description: Hourly radio KPIs per cell tower
+      - name: billing
+        description: Current billing account per subscriber
+        columns:
+          - name: customer_id
+            data_tests: [unique, not_null]
+      - name: billing_monthly
+        description: Invoices per subscriber per month
+      - name: plans
+        description: Tariff catalogue (allowances, price, roaming eligibility)
+        columns:
+          - name: plan_id
+            data_tests: [unique, not_null]
+      - name: complaints
+        description: Customer complaints from care channels and social platforms (ar/en)
+        columns:
+          - name: complaint_id
+            data_tests: [unique, not_null]
+      - name: roaming_sessions
+        description: Outbound roaming sessions on partner networks
+      - name: roaming_partners
+        description: Roaming partner agreements and rates
+        columns:
+          - name: partner_id
+            data_tests: [unique, not_null]
+      - name: roaming_settlements
+        description: Monthly settlement statements per partner (TAP/RAP)
+      - name: campaigns
+        description: Marketing campaigns
+        columns:
+          - name: campaign_id
+            data_tests: [unique, not_null]
+      - name: campaign_responses
+        description: One row per campaign message sent to a subscriber

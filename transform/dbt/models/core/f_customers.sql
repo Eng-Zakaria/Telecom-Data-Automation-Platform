@@ -21,13 +21,13 @@ WITH billing_base AS (
         payment_method,
         last_payment_date,
         lifetime_value,
-        ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY billing_month DESC) as rn
+        subscriber_key,
+        1 as rn  -- stg_billing holds exactly one current account per subscriber
     FROM {{ ref('stg_billing') }}
-    WHERE is_current = true
 ),
 cdr_agg AS (
     SELECT
-        caller_id as customer_id,
+        subscriber_key,
         COUNT(*) as total_calls,
         SUM(CASE WHEN call_type = 'voice' THEN 1 ELSE 0 END) as voice_calls,
         SUM(CASE WHEN call_type = 'sms' THEN 1 ELSE 0 END) as sms_count,
@@ -37,40 +37,41 @@ cdr_agg AS (
         AVG(signal_strength_dbm) as avg_signal_strength,
         MAX(start_time) as last_activity
     FROM {{ ref('stg_cdr') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
-    GROUP BY caller_id
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 90 DAY)
+    GROUP BY subscriber_key
 ),
 support_agg AS (
     SELECT
-        customer_id_hash as customer_id,
+        subscriber_key,
         COUNT(*) as total_complaints,
         SUM(CASE WHEN resolved = true THEN 1 ELSE 0 END) as resolved_complaints,
         AVG(resolution_time_days) as avg_resolution_time,
         MAX(posted_date) as last_complaint_date
     FROM {{ ref('stg_complaints') }}
-    WHERE posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 180 DAY)
-    GROUP BY customer_id_hash
+    WHERE posted_date <= {{ as_of_date() }} + INTERVAL 1 DAY
+      AND posted_date >= ({{ as_of_date() }} - INTERVAL 180 DAY)
+    GROUP BY subscriber_key
 ),
 roaming_agg AS (
     SELECT
-        customer_id as customer_id,
+        subscriber_key,
         COUNT(*) as roaming_sessions,
         SUM(voice_minutes) as total_roaming_minutes,
         SUM(data_mb) as total_roaming_data_mb,
         SUM(settlement_amount) as total_roaming_cost,
         MAX(start_time) as last_roaming_date
     FROM {{ ref('stg_roaming_sessions') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
-    GROUP BY customer_id
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 90 DAY)
+    GROUP BY subscriber_key
 ),
 churn_flags AS (
     SELECT
         customer_id,
         CASE
             WHEN tenure_days < 90 THEN 'new'
-            WHEN tenure_days BETWEEN 90 AND 365 THEN 'established'
-            WHEN tenure_days > 730 THEN 'loyal'
-            ELSE 'unknown'
+            WHEN tenure_days < 365 THEN 'recent'
+            WHEN tenure_days < 730 THEN 'established'
+            ELSE 'loyal'
         END as tenure_segment,
         CASE
             WHEN lifetime_value > 5000 THEN 'high_value'
@@ -89,9 +90,10 @@ churn_flags AS (
 SELECT
     b.customer_id,
     b.hashed_id,
+    b.subscriber_key,
     b.plan_id,
-    p.name as plan_name,
-    p.type as plan_type,
+    p.plan_name,
+    p.plan_type,
     b.monthly_charge,
     b.usage_charges,
     b.total_charge,
@@ -135,8 +137,9 @@ SELECT
     CURRENT_TIMESTAMP as gold_ingestion_timestamp
 FROM billing_base b
 LEFT JOIN {{ ref('dim_plans') }} p ON b.plan_id = p.plan_id
-LEFT JOIN cdr_agg c ON b.customer_id = c.customer_id
-LEFT JOIN support_agg s ON b.customer_id = s.customer_id
-LEFT JOIN roaming_agg r ON b.customer_id = r.customer_id
+-- every feed is joined on the pseudonymous subscriber key (sha256(customer_id)[:16])
+LEFT JOIN cdr_agg c ON b.subscriber_key = c.subscriber_key
+LEFT JOIN support_agg s ON b.subscriber_key = s.subscriber_key
+LEFT JOIN roaming_agg r ON b.subscriber_key = r.subscriber_key
 LEFT JOIN churn_flags t ON b.customer_id = t.customer_id
 WHERE b.rn = 1

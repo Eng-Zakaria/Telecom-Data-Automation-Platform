@@ -26,7 +26,6 @@ WITH plan_metrics AS (
         AVG(b.lifetime_value) as avg_lifetime_value
     FROM {{ ref('dim_plans') }} p
     LEFT JOIN {{ ref('stg_billing') }} b ON p.plan_id = b.plan_id
-    WHERE b.is_current = true
     GROUP BY p.plan_id, p.name, p.type, p.monthly_fee,
              p.included_minutes, p.included_sms, p.included_data_gb, p.roaming_enabled
 ),
@@ -37,15 +36,16 @@ migration_patterns AS (
         b2.plan_id as to_plan,
         p2.name as to_plan_name,
         COUNT(*) as migration_count,
-        AVG(b2.tenure_days - b1.tenure_days) as avg_days_in_previous_plan,
+        AVG(b1.tenure_days) as avg_tenure_days_at_migration,
         SUM(CASE WHEN b2.total_charge > b1.total_charge THEN 1 ELSE 0 END) as upgraded_count,
         SUM(CASE WHEN b2.total_charge < b1.total_charge THEN 1 ELSE 0 END) as downgraded_count
-    FROM {{ ref('stg_billing') }} b1
-    JOIN {{ ref('stg_billing_history') }} b2 ON b1.customer_id = b2.customer_id
-        AND b2.billing_month = DATE_ADD(b1.billing_month, INTERVAL 1 MONTH)
+    -- consecutive invoices of the same subscriber where the plan changed
+    FROM {{ ref('stg_billing_monthly') }} b1
+    JOIN {{ ref('stg_billing_monthly') }} b2 ON b1.customer_id = b2.customer_id
+        AND b2.billing_month_start = b1.billing_month_start + INTERVAL 1 MONTH
+        AND b2.plan_id <> b1.plan_id
     JOIN {{ ref('dim_plans') }} p1 ON b1.plan_id = p1.plan_id
     JOIN {{ ref('dim_plans') }} p2 ON b2.plan_id = p2.plan_id
-    WHERE b1.billing_month = DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 2 MONTH), '%Y-%m')
     GROUP BY b1.plan_id, p1.name, b2.plan_id, p2.name
 ),
 plan_comparison AS (
@@ -76,7 +76,6 @@ bundle_performance AS (
     FROM {{ ref('dim_plans') }} p
     JOIN {{ ref('stg_billing') }} b ON p.plan_id = b.plan_id
     JOIN {{ ref('f_customers') }} c ON b.customer_id = c.customer_id
-    WHERE b.is_current = true
     GROUP BY p.plan_id
 )
 
@@ -116,7 +115,7 @@ SELECT
     NULL as avg_revenue_per_user,
     NULL as payment_rate,
     NULL as default_rate,
-    mp.avg_days_in_previous_plan as avg_tenure,
+    mp.avg_tenure_days_at_migration as avg_tenure,
     NULL as avg_lifetime_value,
     NULL as revenue_rank,
     NULL as popularity_rank,

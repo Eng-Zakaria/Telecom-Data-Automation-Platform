@@ -8,26 +8,27 @@
 
 WITH customer_profile AS (
     SELECT
-        customer_id,
-        plan_id,
-        monthly_charge,
-        tenure_days,
-        lifetime_value,
-        total_calls,
-        total_data_mb,
-        roaming_sessions,
-        total_complaints,
-        usage_segment,
-        value_segment,
-        payment_health,
-        churn_risk_score,
-        churn_risk_category
-
-    FROM {{ ref('f_customers') }}
+        c.customer_id,
+        c.plan_id,
+        c.monthly_charge,
+        c.tenure_days,
+        c.lifetime_value,
+        c.total_calls,
+        c.total_data_mb,
+        c.roaming_sessions,
+        c.total_complaints,
+        c.usage_segment,
+        c.value_segment,
+        c.payment_health,
+        ch.churn_risk_score,
+        ch.churn_risk_category
+    FROM {{ ref('f_customers') }} c
+    -- the score is computed once, in f_churn_prediction
+    LEFT JOIN {{ ref('f_churn_prediction') }} ch USING (customer_id)
 ),
 behavioral_scores AS (
     SELECT
-        customer_id,
+        *,  -- carry the full profile through: recommendations gate offers on it
         -- Data usage propensity
         CASE
             WHEN total_data_mb > 1000 AND usage_segment = 'heavy_user' THEN 0.9

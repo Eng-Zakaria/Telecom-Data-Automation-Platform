@@ -23,7 +23,7 @@ WITH session_analysis AS (
         MAX(r.start_time) as last_roaming_date
     FROM {{ ref('stg_roaming_sessions') }} r
     JOIN {{ ref('dim_roaming_partners') }} p ON r.partner_id = p.partner_id
-    WHERE r.start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
+    WHERE r.start_time >= ({{ as_of_date() }} - INTERVAL 90 DAY)
     GROUP BY r.partner_id, p.name, p.country_code, p.agreement_type
 ),
 revenue_analysis AS (
@@ -34,7 +34,7 @@ revenue_analysis AS (
         SUM(settlement_amount * 2) as net_revenue,
         AVG(settlement_amount * 3.0 / NULLIF(settlement_amount, 0)) as avg_markup
     FROM {{ ref('stg_roaming_sessions') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 30 DAY)
     GROUP BY partner_id
 ),
 anomaly_detection AS (
@@ -46,7 +46,7 @@ anomaly_detection AS (
         AVG(duration_seconds) as avg_duration,
         MAX(start_time) as last_session
     FROM {{ ref('stg_roaming_sessions') }}
-    WHERE start_time >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
+    WHERE start_time >= ({{ as_of_date() }} - INTERVAL 7 DAY)
     GROUP BY customer_id
     HAVING COUNT(*) > 10 OR SUM(settlement_amount) > 1000
 ),
@@ -67,7 +67,7 @@ settlement_tracking AS (
             ELSE 'settled'
         END as settlement_status
     FROM {{ ref('stg_roaming_settlements') }}
-    WHERE settlement_period >= DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 3 MONTH), '%Y-%m')
+    WHERE settlement_period >= strftime(({{ as_of_date() }} - INTERVAL 3 MONTH), '%Y-%m')
 )
 
 SELECT

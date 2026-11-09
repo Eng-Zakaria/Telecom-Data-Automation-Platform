@@ -21,18 +21,18 @@ WITH complaint_analysis AS (
         MIN(c.posted_date) as first_complaint_date,
         MAX(c.posted_date) as last_complaint_date
     FROM {{ ref('stg_complaints') }} c
-    WHERE c.posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
+    WHERE c.posted_date >= ({{ as_of_date() }} - INTERVAL 90 DAY)
     GROUP BY c.language, c.category, c.sentiment, c.severity,
              c.complaint_priority, c.issue_type
 ),
 trend_analysis AS (
     SELECT
-        DATE(posted_date) as date,
+        CAST(posted_date AS DATE) as date,
         sentiment,
         COUNT(*) as daily_count
     FROM {{ ref('stg_complaints') }}
-    WHERE posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-    GROUP BY DATE(posted_date), sentiment
+    WHERE posted_date >= ({{ as_of_date() }} - INTERVAL 30 DAY)
+    GROUP BY CAST(posted_date AS DATE), sentiment
 ),
 source_breakdown AS (
     SELECT
@@ -42,7 +42,7 @@ source_breakdown AS (
         AVG(CASE WHEN sentiment = 'negative' THEN 1 ELSE 0 END) as negative_ratio,
         AVG(upvotes) as avg_engagement
     FROM {{ ref('stg_complaints') }}
-    WHERE posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+    WHERE posted_date >= ({{ as_of_date() }} - INTERVAL 30 DAY)
     GROUP BY source, platform
 ),
 customer_impact AS (
@@ -54,7 +54,7 @@ customer_impact AS (
         MAX(c.posted_date) as last_contact_date,
         COUNT(DISTINCT c.category) as complaint_categories
     FROM {{ ref('stg_complaints') }} c
-    WHERE c.posted_date >= DATE_SUB(CURRENT_DATE, INTERVAL 180 DAY)
+    WHERE c.posted_date >= ({{ as_of_date() }} - INTERVAL 180 DAY)
     GROUP BY c.customer_id_hash
     HAVING COUNT(DISTINCT c.complaint_id) > 1
 )

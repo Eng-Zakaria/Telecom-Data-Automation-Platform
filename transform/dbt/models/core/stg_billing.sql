@@ -9,6 +9,7 @@
 SELECT
     customer_id,
     hashed_id,
+    hashed_id AS subscriber_key,
     plan_id,
     contract_start,
     contract_end,
@@ -22,7 +23,7 @@ SELECT
     num_overdue_months,
     lifetime_value,
     CASE
-        WHEN payment_status = 'paid' AND last_payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY) THEN 'current'
+        WHEN payment_status = 'paid' AND last_payment_date >= ({{ as_of_date() }} - INTERVAL 7 DAY) THEN 'current'
         WHEN payment_status = 'overdue' AND num_overdue_months <= 1 THEN 'behind'
         WHEN payment_status = 'overdue' AND num_overdue_months > 1 THEN 'serious'
         WHEN payment_status = 'defaulted' THEN 'defaulted'
@@ -40,5 +41,5 @@ SELECT
         ELSE 'loyal'
     END as tenure_segment,
     CURRENT_TIMESTAMP as staging_ingestion_timestamp
-FROM {{ source('bronze', 'billing_raw') }}
+FROM {{ source('silver', 'billing') }}
 WHERE customer_id IS NOT NULL

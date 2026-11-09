@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: run_context
+    description: The batch being modelled; marts compute "as of" as_of_date, not the wall clock.
+    data_tests:
+      - dbt_utils_free_single_row
+    columns:
+      - name: as_of_date
+        data_tests: [not_null]
+
+  - name: stg_cdr
+    columns:
+      - name: call_sid
+        data_tests: [unique, not_null]
+      - name: subscriber_key
+        data_tests: [not_null]
+      - name: network_type
+        data_tests:
+          - accepted_values: { arguments: { values: ["2G", "3G", "4G", "5G"] } }
+
+  - name: stg_billing
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: subscriber_key
+        data_tests: [unique, not_null]
+      - name: plan_id
+        data_tests:
+          - relationships: { arguments: { to: ref('dim_plans'), field: plan_id } }
+
+  - name: stg_billing_monthly
+    data_tests:
+      - unique_combination: { arguments: { columns: [customer_id, billing_month] } }
+
+  - name: dim_plans
+    columns:
+      - name: plan_id
+        data_tests: [unique, not_null]
+      - name: plan_type
+        data_tests:
+          - accepted_values: { arguments: { values: [prepaid, postpaid, enterprise] } }
+
+  - name: dim_towers
+    columns:
+      - name: tower_id
+        data_tests: [unique, not_null]
+
+  - name: dim_roaming_partners
+    columns:
+      - name: partner_id
+        data_tests: [unique, not_null]
+
+  - name: f_customers
+    description: Customer 360, one row per subscriber, every feed joined on subscriber_key.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: subscriber_key
+        data_tests: [unique, not_null]
+      - name: tenure_segment
+        data_tests:
+          - accepted_values: { arguments: { values: [new, recent, established, loyal] } }
+      - name: plan_id
+        data_tests:
+          - relationships: { arguments: { to: ref('dim_plans'), field: plan_id } }
+
+  - name: f_billing_summary
+    description: One row per subscriber (the original mixed customer and plan grains).
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: payment_health
+        data_tests:
+          - accepted_values: { arguments: { values: [defaulted, at_risk, good_standing, needs_attention] } }
+
+  - name: f_network_kpis
+    columns:
+      - name: tower_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships: { arguments: { to: ref('dim_towers'), field: tower_id } }

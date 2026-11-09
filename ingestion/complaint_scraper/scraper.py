@@ -53,8 +53,14 @@ class ComplaintScraper:
         self,
         num_complaints: int = 50000,
         output_dir: str = "data/complaints",
-        seed: int = 42
+        seed: int = 42,
+        end_date: Optional[datetime] = None,
+        window_days: int = 365,
     ):
+        # Complaints fall in [end_date - window_days, end_date]; pass the usage window's
+        # end so complaints and CDRs describe the same period (default: calendar 2024).
+        self.end_date = end_date or datetime(2024, 12, 31)
+        self.window_days = window_days
         self.num_complaints = num_complaints
         self.output_dir = output_dir
         self.seed = seed
@@ -156,7 +162,7 @@ class ComplaintScraper:
         title = self.rng.choice(category_templates) if category_templates else "General complaint"
         description = f"{title} - Additional details"
 
-        posted_date = datetime(2024, 1, 1) + timedelta(days=int(self.rng.integers(0, 365)))
+        posted_date = self.end_date - timedelta(days=int(self.rng.integers(0, self.window_days)))
         resolved = self.rng.random() < 0.65
         resolution_time = self.rng.integers(1, 14) if resolved else None
 

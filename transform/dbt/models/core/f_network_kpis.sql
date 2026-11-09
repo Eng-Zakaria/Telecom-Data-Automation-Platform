@@ -9,7 +9,7 @@
 WITH daily_kpis AS (
     SELECT
         tower_id,
-        DATE(timestamp) as date,
+        CAST(timestamp AS DATE) as date,
         AVG(rsrp_dbm) as avg_rsrp,
         AVG(rsrq_db) as avg_rsrq,
         AVG(sinr_db) as avg_sinr,
@@ -23,8 +23,8 @@ WITH daily_kpis AS (
         SUM(total_calls) as total_calls,
         COUNT(*) as num_measurements
     FROM {{ ref('stg_network_kpi') }}
-    WHERE timestamp >= DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY)
-    GROUP BY tower_id, DATE(timestamp)
+    WHERE timestamp >= ({{ as_of_date() }} - INTERVAL 90 DAY)
+    GROUP BY tower_id, CAST(timestamp AS DATE)
 ),
 tower_stats AS (
     SELECT

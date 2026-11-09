@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: f_churn_prediction
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: churn_risk_category
+        data_tests:
+          - accepted_values: { arguments: { values: [low, medium, high] } }
+
+  - name: f_customer_segmentation
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: f_propensity_model
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: f_next_best_action
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: f_revenue_leakage
+    description: Leakage signals for the latest invoice month, keyed on subscriber_key.
+    columns:
+      - name: subscriber_key
+        data_tests: [unique, not_null]
+      - name: billing_accuracy
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [under_billed, over_billed, within_tolerance, no_usage_recorded]
+
+  - name: f_fraud_detection
+    columns:
+      - name: subscriber_key
+        data_tests: [not_null]
+
+  - name: f_plan_performance
+    columns:
+      - name: plan_id
+        data_tests: [not_null]
+
+  - name: f_executive_dashboard
+    data_tests:
+      - unique_combination: { arguments: { columns: [kpi_category, kpi_name] } }

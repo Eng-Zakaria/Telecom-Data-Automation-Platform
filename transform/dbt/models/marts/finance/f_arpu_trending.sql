@@ -30,7 +30,7 @@ revenue_by_segment AS (
         AVG(b.total_charge) as segment_arpu,
         SUM(CASE WHEN b.payment_status = 'paid' THEN b.total_charge ELSE 0 END) as collected_revenue,
         SUM(CASE WHEN b.payment_status != 'paid' THEN b.total_charge ELSE 0 END) as uncollected_revenue
-    FROM {{ ref('stg_billing') }} b
+    FROM {{ ref('stg_billing_monthly') }} b
     JOIN {{ ref('f_customers') }} cs ON b.customer_id = cs.customer_id
     GROUP BY cs.value_segment, cs.tenure_segment, billing_month
 ),
@@ -44,16 +44,14 @@ revenue_by_plan AS (
         AVG(b.total_charge) as plan_arpu,
         SUM(b.base_charge) as base_revenue,
         SUM(b.usage_charge) as usage_revenue
-    FROM {{ ref('stg_billing') }} b
+    FROM {{ ref('stg_billing_monthly') }} b  -- monthly invoices: the grain this CTE groups by
     JOIN {{ ref('dim_plans') }} p ON b.plan_id = p.plan_id
     GROUP BY p.name, p.type, billing_month
 ),
 forecasting_data AS (
+    -- trend columns only; the base measures come from monthly_revenue in the final join
     SELECT
         billing_month,
-        arpu,
-        active_customers,
-        total_revenue,
         -- Simple moving average forecast (3-month)
         AVG(arpu) OVER (ORDER BY billing_month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as arpu_ma_3m,
         AVG(total_revenue) OVER (ORDER BY billing_month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as revenue_ma_3m,
@@ -67,7 +65,7 @@ forecasting_data AS (
 
 SELECT
     'monthly_summary' as analysis_type,
-    billing_month,
+    mr.billing_month,
     active_customers,
     total_revenue,
     arpu,
